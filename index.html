@@ -30,7 +30,24 @@
 </style>
 </head>
 <body>
-<div class="max-w-7xl mx-auto p-6">
+<div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-6">
+  <div class="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+    <div class="text-center">
+      <img src="img/icono-192.png" alt="Escudo Policía Local Vejer" class="mx-auto mb-6 w-32">
+      <div class="cabecera-titulo"><h1 class="text-4xl md:text-6xl font-extrabold text-[#0A2342] leading-tight">CUADRANTE</h1>
+      <h2 class="text-2xl md:text-4xl font-bold text-[#123C73] leading-tight">POLICÍA LOCAL VEJER 2026</h2></div>
+    </div>
+    <div class="mt-8">
+      <input id="loginPassword" type="password" class="w-full border rounded p-3" placeholder="Introduzca su contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter'){validarAcceso();}" />
+    </div>
+    <button onclick="validarAcceso()" class="mt-6 w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded">Acceder</button>
+    <p id="loginError" class="mt-4 text-sm text-red-600 min-h-[1.25rem]"></p>
+    <div class="mt-10 text-center">
+      <p class="text-xs text-slate-500 tracking-[4px]">CREADO POR DAVID LECHUGA</p>
+    </div>
+  </div>
+</div>
+<div id="appContent" class="max-w-7xl mx-auto p-6 hidden">
 <div class="bg-white/95 rounded-3xl shadow-2xl p-8">
 
 <div class="text-center">
@@ -72,6 +89,7 @@
 <p class="text-xs text-slate-500 tracking-[4px]">CREADO POR DAVID LECHUGA</p>
 </div>
 
+</div>
 </div>
 </div>
 

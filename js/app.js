@@ -4,6 +4,63 @@ let agenteSeleccionado={ nombre:"", turno:"", fecha:"" };
 
 for(let i=1;i<=31;i++){document.getElementById("dia").innerHTML+=`<option value="${i}">${i}</option>`;}
 
+const loginScreen=document.getElementById("loginScreen");
+const appContent=document.getElementById("appContent");
+const loginPasswordEl=document.getElementById("loginPassword");
+const loginErrorEl=document.getElementById("loginError");
+
+function mostrarApp(){
+  if(loginScreen){loginScreen.classList.add("hidden");}
+  if(appContent){appContent.classList.remove("hidden");}
+}
+
+function mostrarLogin(){
+  if(loginScreen){loginScreen.classList.remove("hidden");}
+  if(appContent){appContent.classList.add("hidden");}
+}
+
+async function inicializarApp(){
+  await cargarDatosOnline();
+  const hoy=new Date();
+  document.getElementById("dia").value=hoy.getDate();
+  document.getElementById("mes").value=hoy.getMonth()+1;
+  buscarTurnos();
+}
+
+async function validarAcceso(){
+  const password=String(loginPasswordEl?.value||"").trim();
+  if(!password){
+    if(loginErrorEl){loginErrorEl.textContent="Contraseña incorrecta";}
+    return;
+  }
+
+  try{
+    const response=await fetch("./data/usuarios.json?t="+Date.now(), {cache:"no-store"});
+    const usuarios=await response.json();
+    const agente=usuarios[password];
+    if(agente){
+      localStorage.setItem("plvejer_agente", agente);
+      if(loginErrorEl){loginErrorEl.textContent="";}
+      mostrarApp();
+      inicializarApp();
+    } else {
+      if(loginErrorEl){loginErrorEl.textContent="Contraseña incorrecta";}
+    }
+  } catch(e){
+    if(loginErrorEl){loginErrorEl.textContent="Error validando contraseña";}
+  }
+}
+
+function inicializarLogin(){
+  if(localStorage.getItem("plvejer_agente")){
+    mostrarApp();
+    inicializarApp();
+  } else {
+    mostrarLogin();
+    if(loginPasswordEl){loginPasswordEl.focus();}
+  }
+}
+
 async function cargarDatosOnline(){
 try{
 const response=await fetch("./cuadrantes.json?t=" + Date.now(), { cache: "no-store" });
@@ -247,12 +304,7 @@ function irAHoy(){
  buscarTurnos();
 }
 
-cargarDatosOnline().then(()=>{
- const hoy=new Date();
- document.getElementById("dia").value=hoy.getDate();
- document.getElementById("mes").value=hoy.getMonth()+1;
- buscarTurnos();
-});
+inicializarLogin();
 
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
