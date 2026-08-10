@@ -1,0 +1,133 @@
+{
+  "admin": {
+    "nombre": "Administrador",
+    "tipo": "admin",
+    "password": "AdminPL2026"
+  },
+
+  "AHU647": {
+    "nombre": "ANA ANDRADES",
+    "tipo": "agente",
+    "password": "AHU647"
+  },
+
+  "AIS076": {
+    "nombre": "ANTONIO MALIA",
+    "tipo": "agente",
+    "password": "AIS076"
+  },
+
+  "DLR365": {
+    "nombre": "DAVID LECHUGA",
+    "tipo": "agente",
+    "password": "DLR365"
+  },
+
+  "AUK825": {
+    "nombre": "DAVID MELLADO",
+    "tipo": "agente",
+    "password": "AUK825"
+  },
+
+  "APQ362": {
+    "nombre": "FRANCISCO ASENCIO",
+    "tipo": "agente",
+    "password": "APQ362"
+  },
+
+  "ALT647": {
+    "nombre": "J.G. GUNDIN",
+    "tipo": "agente",
+    "password": "ALT647"
+  },
+
+  "ATJ483": {
+    "nombre": "MELCHOR GARCIA",
+    "tipo": "agente",
+    "password": "ATJ483"
+  },
+
+  "AOS748": {
+    "nombre": "MORENTE",
+    "tipo": "agente",
+    "password": "AOS748"
+  },
+
+  "AKS825": {
+    "nombre": "PATRICIA",
+    "tipo": "agente",
+    "password": "AKS825"
+  },
+
+  "ALM936": {
+    "nombre": "JOSE M. PUPO",
+    "tipo": "agente",
+    "password": "ALM936"
+  },
+
+  "AKE617": {
+    "nombre": "OFICIAL MUÑOZ",
+    "tipo": "agente",
+    "password": "AKE617"
+  },
+
+  "ALE579": {
+    "nombre": "JOSE MARIA",
+    "tipo": "agente",
+    "password": "ALE579"
+  },
+
+  "AJR472": {
+    "nombre": "J.G. APARICIO",
+    "tipo": "agente",
+    "password": "AJR472"
+  },
+
+  "AKE446": {
+    "nombre": "J.A. CORREA",
+    "tipo": "agente",
+    "password": "AKE446"
+  },
+
+  "AQW610": {
+    "nombre": "PEDRO GUERRERO",
+    "tipo": "agente",
+    "password": "AQW610"
+  },
+
+  "AIR728": {
+    "nombre": "A. CAAMAÑO",
+    "tipo": "agente",
+    "password": "AIR728"
+  },
+
+  "AHY646": {
+    "nombre": "VICTOR GUERRA",
+    "tipo": "agente",
+    "password": "AHY646"
+  },
+
+  "AFG713": {
+    "nombre": "SAMUEL PEREZ",
+    "tipo": "agente",
+    "password": "AFG713"
+  },
+
+  "AVD583": {
+    "nombre": "DOLORES LOPEZ",
+    "tipo": "agente",
+    "password": "AVD583"
+  },
+
+  "AUW937": {
+    "nombre": "OFICIAL CORTABARRA",
+    "tipo": "agente",
+    "password": "AUW937"
+  },
+
+  "APE882": {
+    "nombre": "SARMIENTO",
+    "tipo": "agente",
+    "password": "APE882"
+  }
+}

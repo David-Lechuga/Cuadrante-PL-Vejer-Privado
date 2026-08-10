@@ -1,14 +1,16 @@
 /* ============================================================
    VISOR CUADRANTE POLICÍA LOCAL VEJER
-   EDICIÓN PRIVADA
    GESTIÓN Y CARGA DE DATOS
    Versión 2.0
-   Creado por David Lechuga
 ============================================================ */
+
+let cuadrantes = {};
+let telefonos = {};
+let usuarios = {};
 
 
 /* ============================================================
-   CARGAR CUADRANTE
+   CARGAR CUADRANTES
 ============================================================ */
 
 async function cargarCuadrantes() {
@@ -33,9 +35,11 @@ async function cargarCuadrantes() {
         const datos =
             await respuesta.json();
 
-        cuadrantes = datos;
+        cuadrantes = datos || {};
 
-        actualizarFechaSincronizacion(datos);
+        actualizarFechaSincronizacion(
+            cuadrantes
+        );
 
         console.log(
             "Cuadrantes cargados correctamente."
@@ -85,7 +89,7 @@ async function cargarTelefonos() {
         const datos =
             await respuesta.json();
 
-        telefonos = datos;
+        telefonos = datos || {};
 
         console.log(
             "Teléfonos cargados correctamente."
@@ -136,35 +140,34 @@ async function cargarUsuarios() {
             await respuesta.json();
 
         /*
-           Admitimos dos formatos:
+         * Nuestro nuevo usuarios.json utiliza:
+         *
+         * {
+         *     "admin": {...},
+         *     "AHU647": {...},
+         *     ...
+         * }
+         *
+         * Por tanto lo conservamos como objeto.
+         */
 
-           1. usuarios.json contiene directamente un array.
-
-           2. usuarios.json contiene:
-              {
-                  "usuarios": [...]
-              }
-        */
-
-        if (Array.isArray(datos)) {
+        if (
+            datos &&
+            typeof datos === "object" &&
+            !Array.isArray(datos)
+        ) {
 
             usuarios = datos;
 
-        } else if (
-            datos &&
-            Array.isArray(datos.usuarios)
-        ) {
-
-            usuarios = datos.usuarios;
-
         } else {
 
-            usuarios = [];
+            usuarios = {};
 
         }
 
         console.log(
-            "Usuarios cargados correctamente."
+            "Usuarios cargados correctamente:",
+            Object.keys(usuarios).length
         );
 
         return true;
@@ -176,7 +179,7 @@ async function cargarUsuarios() {
             error
         );
 
-        usuarios = [];
+        usuarios = {};
 
         return false;
 
@@ -202,6 +205,7 @@ async function cargarTodosLosDatos() {
 
         ]);
 
+
     const cuadrantesOK =
         resultados[0];
 
@@ -211,6 +215,7 @@ async function cargarTodosLosDatos() {
     const usuariosOK =
         resultados[2];
 
+
     console.log(
         "Resultado carga de datos:",
         {
@@ -219,6 +224,7 @@ async function cargarTodosLosDatos() {
             usuarios: usuariosOK
         }
     );
+
 
     return {
 
@@ -242,10 +248,23 @@ async function cargarTodosLosDatos() {
 
 
 /* ============================================================
+   COMPATIBILIDAD CON app.js
+============================================================ */
+
+async function cargarDatosOnline() {
+
+    return await cargarTodosLosDatos();
+
+}
+
+
+/* ============================================================
    ACTUALIZAR FECHA DE SINCRONIZACIÓN
 ============================================================ */
 
-function actualizarFechaSincronizacion(datos) {
+function actualizarFechaSincronizacion(
+    datos
+) {
 
     if (!datos) {
 
@@ -253,10 +272,12 @@ function actualizarFechaSincronizacion(datos) {
 
     }
 
+
     const elemento =
-        obtenerElemento(
+        document.getElementById(
             "ultimaActualizacion"
         );
+
 
     if (!elemento) {
 
@@ -264,15 +285,16 @@ function actualizarFechaSincronizacion(datos) {
 
     }
 
+
     if (datos.actualizado) {
 
         elemento.textContent =
-            `${TEXTOS.ultimaSincronizacion} ${datos.actualizado}`;
+            `Última sincronización: ${datos.actualizado}`;
 
     } else {
 
         elemento.textContent =
-            `${TEXTOS.ultimaSincronizacion} Desconocida`;
+            "Última sincronización: Desconocida";
 
     }
 
@@ -283,7 +305,9 @@ function actualizarFechaSincronizacion(datos) {
    OBTENER DATOS DE UN MES
 ============================================================ */
 
-function obtenerDatosMes(nombreMes) {
+function obtenerDatosMes(
+    nombreMes
+) {
 
     if (!nombreMes) {
 
@@ -291,20 +315,24 @@ function obtenerDatosMes(nombreMes) {
 
     }
 
+
     if (!cuadrantes) {
 
         return [];
 
     }
 
+
     const datos =
         cuadrantes[nombreMes];
+
 
     if (!Array.isArray(datos)) {
 
         return [];
 
     }
+
 
     return datos;
 
@@ -321,10 +349,14 @@ function obtenerDatosDia(
 ) {
 
     const datosMes =
-        obtenerDatosMes(nombreMes);
+        obtenerDatosMes(
+            nombreMes
+        );
+
 
     const numeroDia =
         parseInt(dia);
+
 
     if (
         !datosMes.length ||
@@ -334,6 +366,7 @@ function obtenerDatosDia(
         return [];
 
     }
+
 
     return datosMes.filter(
         item =>
@@ -360,10 +393,12 @@ function obtenerServicioAgente(
             dia
         );
 
+
     const nombre =
         normalizarTexto(
             nombreAgente
         );
+
 
     const registro =
         datosDia.find(
@@ -373,11 +408,13 @@ function obtenerServicioAgente(
                 ) === nombre
         );
 
+
     if (!registro) {
 
         return null;
 
     }
+
 
     return {
 
@@ -390,7 +427,9 @@ function obtenerServicioAgente(
             ).trim(),
 
         dia:
-            parseInt(registro.dia),
+            parseInt(
+                registro.dia
+            ),
 
         mes:
             nombreMes
@@ -416,8 +455,12 @@ function obtenerAgentesPorTurno(
             dia
         );
 
+
     const codigo =
-        String(turno).trim();
+        String(
+            turno
+        ).trim();
+
 
     return datosDia
 
@@ -425,7 +468,8 @@ function obtenerAgentesPorTurno(
             item =>
                 String(
                     item.turno || ""
-                ).trim() === codigo
+                ).trim() ===
+                codigo
         )
 
         .map(
@@ -467,16 +511,16 @@ function obtenerTelefonoAgente(
 
     }
 
+
     const nombre =
         normalizarTexto(
             nombreAgente
         );
 
+
     /*
-       Admitimos diferentes estructuras
-       para facilitar la compatibilidad con
-       el telefonos.json actual.
-    */
+     * Formato array
+     */
 
     if (Array.isArray(telefonos)) {
 
@@ -489,11 +533,13 @@ function obtenerTelefonoAgente(
                     ) === nombre
             );
 
+
         if (!registro) {
 
             return "";
 
         }
+
 
         return (
             registro.telefono ||
@@ -504,8 +550,13 @@ function obtenerTelefonoAgente(
     }
 
 
+    /*
+     * Formato objeto
+     */
+
     if (
-        typeof telefonos === "object"
+        typeof telefonos ===
+        "object"
     ) {
 
         for (
@@ -513,12 +564,14 @@ function obtenerTelefonoAgente(
         ) {
 
             if (
-                normalizarTexto(clave) ===
-                nombre
+                normalizarTexto(
+                    clave
+                ) === nombre
             ) {
 
                 const valor =
                     telefonos[clave];
+
 
                 if (
                     typeof valor ===
@@ -528,6 +581,7 @@ function obtenerTelefonoAgente(
                     return valor;
 
                 }
+
 
                 if (
                     valor &&
@@ -549,27 +603,36 @@ function obtenerTelefonoAgente(
 
     }
 
+
     return "";
 
 }
 
 
 /* ============================================================
-   OBTENER REGISTRO DE USUARIO
+   OBTENER USUARIO POR CONTRASEÑA
 ============================================================ */
 
 function obtenerUsuarioPorPassword(
     password
 ) {
 
-    if (!Array.isArray(usuarios)) {
+    if (
+        !usuarios ||
+        typeof usuarios !==
+        "object"
+    ) {
 
         return null;
 
     }
 
+
     const contraseña =
-        String(password || "").trim();
+        String(
+            password || ""
+        ).trim();
+
 
     if (!contraseña) {
 
@@ -577,12 +640,45 @@ function obtenerUsuarioPorPassword(
 
     }
 
-    return usuarios.find(
-        usuario =>
+
+    for (
+        const clave in usuarios
+    ) {
+
+        const usuario =
+            usuarios[clave];
+
+
+        if (
+            usuario &&
             String(
                 usuario.password || ""
-            ).trim() === contraseña
-    ) || null;
+            ).trim() ===
+            contraseña
+        ) {
+
+            return {
+
+                id:
+                    clave,
+
+                nombre:
+                    usuario.nombre,
+
+                tipo:
+                    usuario.tipo,
+
+                password:
+                    usuario.password
+
+            };
+
+        }
+
+    }
+
+
+    return null;
 
 }
 
@@ -595,29 +691,104 @@ function obtenerUsuarioPorNombre(
     nombre
 ) {
 
-    if (!Array.isArray(usuarios)) {
+    if (
+        !usuarios ||
+        typeof usuarios !==
+        "object"
+    ) {
 
         return null;
 
     }
+
 
     const nombreNormalizado =
         normalizarTexto(
             nombre
         );
 
-    return usuarios.find(
-        usuario =>
+
+    for (
+        const clave in usuarios
+    ) {
+
+        const usuario =
+            usuarios[clave];
+
+
+        if (
+            usuario &&
             normalizarTexto(
                 usuario.nombre
-            ) === nombreNormalizado
-    ) || null;
+            ) ===
+            nombreNormalizado
+        ) {
+
+            return {
+
+                id:
+                    clave,
+
+                nombre:
+                    usuario.nombre,
+
+                tipo:
+                    usuario.tipo,
+
+                password:
+                    usuario.password
+
+            };
+
+        }
+
+    }
+
+
+    return null;
 
 }
 
 
 /* ============================================================
-   COMPROBAR SI EXISTEN LOS DATOS PRINCIPALES
+   OBTENER TODOS LOS USUARIOS
+============================================================ */
+
+function obtenerTodosLosUsuarios() {
+
+    if (
+        !usuarios ||
+        typeof usuarios !==
+        "object"
+    ) {
+
+        return [];
+
+    }
+
+
+    return Object.keys(
+        usuarios
+    ).map(
+        clave => ({
+
+            id:
+                clave,
+
+            nombre:
+                usuarios[clave].nombre,
+
+            tipo:
+                usuarios[clave].tipo
+
+        })
+    );
+
+}
+
+
+/* ============================================================
+   COMPROBAR SI EXISTEN LOS DATOS
 ============================================================ */
 
 function datosDisponibles() {
@@ -625,11 +796,13 @@ function datosDisponibles() {
     return (
 
         cuadrantes &&
+
         typeof cuadrantes ===
             "object" &&
 
-        Object.keys(cuadrantes)
-            .length > 0
+        Object.keys(
+            cuadrantes
+        ).length > 0
 
     );
 
@@ -637,5 +810,5 @@ function datosDisponibles() {
 
 
 /* ============================================================
-   FIN DE data.js
+   FIN data.js
 ============================================================ */
