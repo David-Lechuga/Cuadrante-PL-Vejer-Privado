@@ -32,7 +32,7 @@ async function cargarUsuarios() {
         const datos = await respuesta.json();
 
         /*
-         * usuarios es la variable global definida en data.js
+         * usuarios es la variable global definida en data.js.
          */
 
         usuarios = datos || {};
@@ -70,8 +70,9 @@ async function inicializarAutenticacion() {
         "Inicializando autenticación..."
     );
 
+
     /*
-     * Intentamos cargar los usuarios.
+     * Cargar usuarios.
      */
 
     const usuariosOK =
@@ -96,7 +97,7 @@ async function inicializarAutenticacion() {
 
 
     /*
-     * Comprobar si existe una sesión anterior.
+     * Comprobar si existe una sesión guardada.
      */
 
     const sesionGuardada =
@@ -121,8 +122,18 @@ async function inicializarAutenticacion() {
                 sesion.tipo
             ) {
 
-                usuarioActual =
-                    sesion;
+                usuarioActual = {
+
+                    id:
+                        sesion.id || "",
+
+                    nombre:
+                        sesion.nombre,
+
+                    tipo:
+                        sesion.tipo
+
+                };
 
 
                 console.log(
@@ -145,17 +156,18 @@ async function inicializarAutenticacion() {
                 "La sesión guardada no es válida."
             );
 
-            sessionStorage.removeItem(
-                "usuarioActual"
-            );
-
         }
+
+
+        sessionStorage.removeItem(
+            "usuarioActual"
+        );
 
     }
 
 
     /*
-     * No hay sesión.
+     * No existe sesión.
      */
 
     mostrarLogin();
@@ -164,35 +176,38 @@ async function inicializarAutenticacion() {
 
 
 /* ============================================================
-   VALIDAR ACCESO
+   INICIAR SESIÓN
 ============================================================ */
 
-async function validarAcceso() {
+/*
+ * IMPORTANTE:
+ *
+ * Esta función NO llama a validarAcceso().
+ *
+ * El app.js actual tiene una función validarAcceso()
+ * que termina llamando a iniciarSesion().
+ *
+ * Si iniciarSesion() llamara de nuevo a validarAcceso(),
+ * se produciría una recursión infinita.
+ */
+
+async function iniciarSesion() {
 
     console.log(
-        "Validando acceso..."
+        "iniciarSesion()"
     );
 
-
-    /*
-     * Buscar el campo de contraseña.
-     *
-     * Compatibilidad con diferentes versiones del HTML.
-     */
 
     const campoPassword =
         document.getElementById(
             "loginPassword"
-        ) ||
-        document.getElementById(
-            "password"
         );
 
 
     if (!campoPassword) {
 
         console.error(
-            "No existe el campo de contraseña."
+            "No existe el campo loginPassword."
         );
 
         return;
@@ -205,7 +220,7 @@ async function validarAcceso() {
 
 
     /*
-     * Comprobar que se ha introducido algo.
+     * Comprobar contraseña vacía.
      */
 
     if (!password) {
@@ -222,8 +237,7 @@ async function validarAcceso() {
 
 
     /*
-     * Si los usuarios todavía no están cargados,
-     * los cargamos ahora.
+     * Asegurarnos de que los usuarios están cargados.
      */
 
     if (
@@ -250,58 +264,20 @@ async function validarAcceso() {
 
 
     /*
-     * Buscar al usuario mediante su contraseña.
+     * Buscar usuario por contraseña.
      */
 
-    let usuarioEncontrado = null;
-
-
-    for (
-        const clave in usuarios
-    ) {
-
-        const usuario =
-            usuarios[clave];
-
-
-        if (!usuario) {
-
-            continue;
-
-        }
-
-
-        if (
-            String(
-                usuario.password || ""
-            ).trim() === password
-        ) {
-
-            usuarioEncontrado = {
-
-                id:
-                    clave,
-
-                nombre:
-                    usuario.nombre,
-
-                tipo:
-                    usuario.tipo
-
-            };
-
-            break;
-
-        }
-
-    }
+    const encontrado =
+        obtenerUsuarioPorPassword(
+            password
+        );
 
 
     /*
      * Contraseña incorrecta.
      */
 
-    if (!usuarioEncontrado) {
+    if (!encontrado) {
 
         console.warn(
             "Contraseña incorrecta."
@@ -321,21 +297,21 @@ async function validarAcceso() {
 
 
     /*
-     * Guardamos el usuario identificado.
+     * Crear sesión.
      *
-     * NO guardamos la contraseña.
+     * La contraseña NO se guarda.
      */
 
     usuarioActual = {
 
         id:
-            usuarioEncontrado.id,
+            encontrado.id,
 
         nombre:
-            usuarioEncontrado.nombre,
+            encontrado.nombre,
 
         tipo:
-            usuarioEncontrado.tipo
+            encontrado.tipo
 
     };
 
@@ -369,15 +345,14 @@ async function validarAcceso() {
 
 
     /*
-     * Actualizar elementos de usuario.
+     * Actualizar interfaz.
      */
 
     actualizarInterfazUsuario();
 
 
     /*
-     * Si existe la función irAHoy(),
-     * mostramos el día actual.
+     * Mostrar el día actual si la función existe.
      */
 
     if (
@@ -392,24 +367,166 @@ async function validarAcceso() {
 
 
 /* ============================================================
-   COMPATIBILIDAD CON EL APP.JS ACTUAL
+   VALIDAR ACCESO
 ============================================================ */
 
 /*
- * El app.js que tenemos actualmente todavía llama
- * a iniciarSesion().
+ * Esta función se mantiene porque el HTML actual puede
+ * llamar directamente a validarAcceso().
  *
- * Mantenemos esta función para no tener que modificar
- * el app.js en este momento.
+ * NO llama a validarAcceso() otra vez.
+ * Tampoco llama a iniciarSesion() directamente si el
+ * app.js ya dispone de su propia función.
  */
 
-async function iniciarSesion() {
+async function validarAcceso() {
 
     console.log(
-        "iniciarSesion() → validarAcceso()"
+        "validarAcceso()"
     );
 
-    return await validarAcceso();
+
+    /*
+     * Si app.js dispone de su propia función validarAcceso,
+     * esta función puede ser sustituida posteriormente.
+     *
+     * Para evitar recursiones, aquí hacemos directamente
+     * el proceso de autenticación.
+     */
+
+    const campoPassword =
+        document.getElementById(
+            "loginPassword"
+        );
+
+
+    if (!campoPassword) {
+
+        console.error(
+            "No existe el campo loginPassword."
+        );
+
+        return;
+
+    }
+
+
+    const password =
+        campoPassword.value.trim();
+
+
+    if (!password) {
+
+        mostrarErrorLogin(
+            "Introduzca la contraseña."
+        );
+
+        campoPassword.focus();
+
+        return;
+
+    }
+
+
+    /*
+     * Cargar usuarios si todavía no están disponibles.
+     */
+
+    if (
+        !usuarios ||
+        typeof usuarios !== "object" ||
+        Object.keys(usuarios).length === 0
+    ) {
+
+        const cargados =
+            await cargarUsuarios();
+
+
+        if (!cargados) {
+
+            mostrarErrorLogin(
+                "No se ha podido cargar la lista de usuarios."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    /*
+     * Buscar usuario.
+     */
+
+    const encontrado =
+        obtenerUsuarioPorPassword(
+            password
+        );
+
+
+    if (!encontrado) {
+
+        mostrarErrorLogin(
+            "Contraseña incorrecta."
+        );
+
+        campoPassword.value = "";
+
+        campoPassword.focus();
+
+        return;
+
+    }
+
+
+    /*
+     * Crear sesión.
+     */
+
+    usuarioActual = {
+
+        id:
+            encontrado.id,
+
+        nombre:
+            encontrado.nombre,
+
+        tipo:
+            encontrado.tipo
+
+    };
+
+
+    sessionStorage.setItem(
+        "usuarioActual",
+        JSON.stringify(
+            usuarioActual
+        )
+    );
+
+
+    console.log(
+        "Usuario identificado:",
+        usuarioActual
+    );
+
+
+    campoPassword.value = "";
+
+
+    mostrarAplicacion();
+
+    actualizarInterfazUsuario();
+
+
+    if (
+        typeof irAHoy === "function"
+    ) {
+
+        irAHoy();
+
+    }
 
 }
 
@@ -504,8 +621,8 @@ function actualizarInterfazUsuario() {
 
 
     /*
-     * Posibles elementos del HTML donde mostrar
-     * el nombre del usuario.
+     * Mostrar nombre del usuario si existe
+     * algún elemento preparado para ello.
      */
 
     const idsNombre = [
@@ -539,6 +656,12 @@ function actualizarInterfazUsuario() {
 
     /*
      * Elementos exclusivos del administrador.
+     *
+     * Cualquier elemento HTML con:
+     *
+     * data-admin-only
+     *
+     * solo será visible para el administrador.
      */
 
     const elementosAdmin =
@@ -629,7 +752,7 @@ function obtenerTipoUsuario() {
 
 
 /* ============================================================
-   COMPROBAR ADMINISTRADOR
+   COMPROBAR SI ES ADMINISTRADOR
 ============================================================ */
 
 function esAdministrador() {
@@ -643,7 +766,7 @@ function esAdministrador() {
 
 
 /* ============================================================
-   COMPROBAR AGENTE
+   COMPROBAR SI ES AGENTE
 ============================================================ */
 
 function esAgente() {
@@ -708,9 +831,6 @@ function cerrarSesion() {
     const campoPassword =
         document.getElementById(
             "loginPassword"
-        ) ||
-        document.getElementById(
-            "password"
         );
 
 
@@ -724,7 +844,7 @@ function cerrarSesion() {
 
 
     /*
-     * Limpiar posibles mensajes.
+     * Limpiar mensajes de error.
      */
 
     const elementosError = [
@@ -781,7 +901,7 @@ function mostrarErrorLogin(
 
 
     /*
-     * Compatibilidad con HTML anterior.
+     * Compatibilidad con versiones anteriores.
      */
 
     const elementoAntiguo =
