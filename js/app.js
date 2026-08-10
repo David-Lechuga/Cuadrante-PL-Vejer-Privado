@@ -151,67 +151,9 @@ function inicializarInterfaz() {
     );
 
 
-    /*
-     * --------------------------------------------------------
-     * SELECTOR DE MES
-     * --------------------------------------------------------
-     */
-
-    const selectorMes =
-        document.getElementById(
-            "mes"
-        );
-
-
-    if (selectorMes) {
-
-        /*
-         * Si render.js/data.js ya ha rellenado el selector,
-         * no hacemos nada.
-         */
-
-        if (
-            selectorMes.options.length === 0 &&
-            typeof obtenerMeses === "function"
-        ) {
-
-            const meses =
-                obtenerMeses();
-
-
-            meses.forEach(
-                mes => {
-
-                    const opcion =
-                        document.createElement(
-                            "option"
-                        );
-
-
-                    opcion.value =
-                        mes;
-
-                    opcion.textContent =
-                        mes;
-
-
-                    selectorMes.appendChild(
-                        opcion
-                    );
-
-                }
-            );
-
-        }
-
-    }
-
-
-    /*
-     * --------------------------------------------------------
-     * SELECTOR DE DÍA
-     * --------------------------------------------------------
-     */
+    /* ========================================================
+       SELECTOR DE DÍA
+    ======================================================== */
 
     const selectorDia =
         document.getElementById(
@@ -238,10 +180,10 @@ function inicializarInterfaz() {
 
 
                 opcion.value =
-                    dia;
+                    String(dia);
 
                 opcion.textContent =
-                    dia;
+                    String(dia);
 
 
                 selectorDia.appendChild(
@@ -255,11 +197,91 @@ function inicializarInterfaz() {
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * BOTÓN BUSCAR
-     * --------------------------------------------------------
-     */
+    /* ========================================================
+       SELECTOR DE MES
+    ======================================================== */
+
+    const selectorMes =
+        document.getElementById(
+            "mes"
+        );
+
+
+    if (selectorMes) {
+
+        /*
+         * IMPORTANTE:
+         *
+         * El buscador utiliza los valores:
+         *
+         * 1  = Enero
+         * 2  = Febrero
+         * ...
+         * 12 = Diciembre
+         *
+         * Por eso el value es numérico y el texto
+         * es el nombre del mes.
+         */
+
+        if (
+            selectorMes.options.length === 0
+        ) {
+
+            const meses = [
+
+                "ENERO",
+                "FEBRERO",
+                "MARZO",
+                "ABRIL",
+                "MAYO",
+                "JUNIO",
+                "JULIO",
+                "AGOSTO",
+                "SEPTIEMBRE",
+                "OCTUBRE",
+                "NOVIEMBRE",
+                "DICIEMBRE"
+
+            ];
+
+
+            meses.forEach(
+                (
+                    nombre,
+                    indice
+                ) => {
+
+                    const opcion =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    opcion.value =
+                        String(
+                            indice + 1
+                        );
+
+
+                    opcion.textContent =
+                        nombre;
+
+
+                    selectorMes.appendChild(
+                        opcion
+                    );
+
+                }
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       BOTÓN BUSCAR
+    ======================================================== */
 
     const botonBuscar =
         document.getElementById(
@@ -279,11 +301,9 @@ function inicializarInterfaz() {
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * BOTÓN HOY
-     * --------------------------------------------------------
-     */
+    /* ========================================================
+       BOTÓN HOY
+    ======================================================== */
 
     const botonHoy =
         document.getElementById(
@@ -303,11 +323,9 @@ function inicializarInterfaz() {
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * BOTÓN DÍA SIGUIENTE
-     * --------------------------------------------------------
-     */
+    /* ========================================================
+       BOTÓN DÍA SIGUIENTE
+    ======================================================== */
 
     const botonDiaSiguiente =
         document.getElementById(
@@ -327,11 +345,9 @@ function inicializarInterfaz() {
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * BOTÓN CERRAR SESIÓN
-     * --------------------------------------------------------
-     */
+    /* ========================================================
+       CERRAR SESIÓN
+    ======================================================== */
 
     const botonCerrarSesion =
         document.getElementById(
@@ -424,17 +440,34 @@ function irAHoy() {
         ahora.getDate();
 
 
-    const mesNumero =
-        ahora.getMonth();
-
-
     /*
-     * Selector de día.
+     * JavaScript devuelve:
+     *
+     * Enero = 0
+     * Febrero = 1
+     * ...
+     * Diciembre = 11
+     *
+     * Nuestro selector utiliza:
+     *
+     * Enero = 1
+     * ...
+     * Diciembre = 12
      */
+
+    const mes =
+        ahora.getMonth() + 1;
+
 
     const selectorDia =
         document.getElementById(
             "dia"
+        );
+
+
+    const selectorMes =
+        document.getElementById(
+            "mes"
         );
 
 
@@ -446,49 +479,21 @@ function irAHoy() {
     }
 
 
-    /*
-     * Selector de mes.
-     */
-
-    const selectorMes =
-        document.getElementById(
-            "mes"
-        );
-
-
     if (selectorMes) {
 
-        /*
-         * Obtener nombre del mes desde data.js
-         * si está disponible.
-         */
-
-        if (
-            typeof obtenerMeses ===
-            "function"
-        ) {
-
-            const meses =
-                obtenerMeses();
-
-
-            if (
-                meses &&
-                meses[mesNumero]
-            ) {
-
-                selectorMes.value =
-                    meses[mesNumero];
-
-            }
-
-        }
+        selectorMes.value =
+            String(mes);
 
     }
 
 
+    console.log(
+        `Fecha establecida en Hoy: ${dia}/${mes}`
+    );
+
+
     /*
-     * Buscar turnos.
+     * Buscar automáticamente el cuadrante.
      */
 
     if (
@@ -501,6 +506,7 @@ function irAHoy() {
     }
 
 }
+
 /* ============================================================
    DÍA SIGUIENTE
 ============================================================ */
@@ -534,11 +540,6 @@ function diaSiguiente() {
         );
 
 
-    /*
-     * Si por algún motivo no existen los selectores,
-     * no continuamos.
-     */
-
     if (
         !selectorDia ||
         !selectorMes
@@ -553,212 +554,137 @@ function diaSiguiente() {
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * OBTENER DÍA ACTUAL
-     * --------------------------------------------------------
-     */
+    /* ========================================================
+       OBTENER FECHA ACTUAL
+    ======================================================== */
 
-    let diaActual =
+    let dia =
         parseInt(
             selectorDia.value,
             10
         );
 
 
-    if (
-        Number.isNaN(
-            diaActual
-        )
-    ) {
-
-        diaActual = 1;
-
-    }
-
-
-    /*
-     * --------------------------------------------------------
-     * OBTENER MES ACTUAL
-     * --------------------------------------------------------
-     */
-
-    const meses =
-        typeof obtenerMeses ===
-        "function"
-            ? obtenerMeses()
-            : [
-                "Enero",
-                "Febrero",
-                "Marzo",
-                "Abril",
-                "Mayo",
-                "Junio",
-                "Julio",
-                "Agosto",
-                "Septiembre",
-                "Octubre",
-                "Noviembre",
-                "Diciembre"
-            ];
-
-
-    let indiceMes =
-        meses.indexOf(
-            selectorMes.value
+    let mes =
+        parseInt(
+            selectorMes.value,
+            10
         );
 
 
     /*
-     * Si no encontramos el mes,
-     * intentamos determinarlo por número.
+     * Si el día no es válido,
+     * comenzamos en el día 1.
      */
 
     if (
-        indiceMes < 0
+        Number.isNaN(dia)
     ) {
 
-        const numeroMes =
-            parseInt(
-                selectorMes.value,
-                10
-            );
-
-
-        if (
-            !Number.isNaN(
-                numeroMes
-            )
-        ) {
-
-            indiceMes =
-                numeroMes - 1;
-
-        }
+        dia = 1;
 
     }
 
 
     /*
-     * Si todavía no tenemos un mes válido,
-     * utilizamos enero.
+     * Si el mes no es válido,
+     * utilizamos el mes actual.
      */
 
     if (
-        indiceMes < 0
+        Number.isNaN(mes) ||
+        mes < 1 ||
+        mes > 12
     ) {
 
-        indiceMes = 0;
+        mes =
+            new Date().getMonth() + 1;
 
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * DETERMINAR CUÁNTOS DÍAS TIENE EL MES
-     * --------------------------------------------------------
-     */
-
-    /*
-     * Usamos un año no bisiesto.
-     *
-     * Para el cuadrante esto es suficiente porque solamente
-     * necesitamos determinar el cambio de día/mes.
-     *
-     * Febrero tendrá 28 días.
-     */
+    /* ========================================================
+       DÍAS DE CADA MES
+    ======================================================== */
 
     const diasPorMes = [
-        31,
-        28,
-        31,
-        30,
-        31,
-        30,
-        31,
-        31,
-        30,
-        31,
-        30,
-        31
+
+        0,
+
+        31, // Enero
+        28, // Febrero
+        31, // Marzo
+        30, // Abril
+        31, // Mayo
+        30, // Junio
+        31, // Julio
+        31, // Agosto
+        30, // Septiembre
+        31, // Octubre
+        30, // Noviembre
+        31  // Diciembre
+
     ];
 
 
-    const ultimoDia =
-        diasPorMes[indiceMes] ||
-        31;
+    /* ========================================================
+       AVANZAR UN DÍA
+    ======================================================== */
+
+    dia++;
 
 
-    /*
-     * --------------------------------------------------------
-     * AVANZAR UN DÍA
-     * -------------------------------------------------------- */
-
-    diaActual++;
-
-
-    /*
-     * Si hemos superado el último día del mes,
-     * pasamos al día 1 del siguiente mes.
-     */
+    /* ========================================================
+       CAMBIO DE MES
+    ======================================================== */
 
     if (
-        diaActual >
-        ultimoDia
+        dia >
+        diasPorMes[mes]
     ) {
 
-        diaActual = 1;
+        dia = 1;
 
-        indiceMes++;
+        mes++;
 
     }
 
 
     /*
-     * Si hemos superado diciembre,
-     * volvemos a enero.
+     * Después de diciembre:
+     *
+     * 31 diciembre → 1 enero
      */
 
     if (
-        indiceMes >=
-        meses.length
+        mes > 12
     ) {
 
-        indiceMes = 0;
+        mes = 1;
 
     }
 
 
-    /*
-     * --------------------------------------------------------
-     * ACTUALIZAR SELECTOR DE DÍA
-     * -------------------------------------------------------- */
+    /* ========================================================
+       ACTUALIZAR SELECTORES
+    ======================================================== */
 
     selectorDia.value =
-        String(
-            diaActual
-        );
+        String(dia);
 
 
-    /*
-     * --------------------------------------------------------
-     * ACTUALIZAR SELECTOR DE MES
-     * -------------------------------------------------------- */
-
-    if (
-        meses[indiceMes]
-    ) {
-
-        selectorMes.value =
-            meses[indiceMes];
-
-    }
+    selectorMes.value =
+        String(mes);
 
 
-    /*
-     * --------------------------------------------------------
-     * BUSCAR LOS TURNOS DEL NUEVO DÍA
-     * -------------------------------------------------------- */
+    console.log(
+        `Día siguiente: ${dia}/${mes}`
+    );
+
+
+    /* ========================================================
+       BUSCAR LOS TURNOS DEL NUEVO DÍA
+    ======================================================== */
 
     if (
         typeof buscarTurnos ===
@@ -1606,30 +1532,18 @@ function prepararFechaInicial() {
         !selectorMes
     ) {
 
-        return;
-
-    }
-
-
-    /*
-     * Si ya tienen valores, los respetamos.
-     */
-
-    if (
-        selectorDia.value &&
-        selectorMes.value
-    ) {
-
-        actualizarFechaMostrada();
+        console.error(
+            "No se encontraron los selectores de día y mes."
+        );
 
         return;
 
     }
 
 
-    /*
-     * Si no tienen valores, cargamos el día actual.
-     */
+    /* ========================================================
+       FECHA ACTUAL
+    ======================================================== */
 
     const ahora =
         new Date();
@@ -1639,47 +1553,44 @@ function prepararFechaInicial() {
         ahora.getDate();
 
 
-    const mes =
-        ahora.getMonth();
+    /*
+     * JavaScript devuelve:
+     *
+     * Enero = 0
+     * Febrero = 1
+     * ...
+     * Diciembre = 11
+     *
+     * Nuestro selector utiliza:
+     *
+     * Enero = 1
+     * ...
+     * Diciembre = 12
+     */
 
+    const mes =
+        ahora.getMonth() + 1;
+
+
+    /* ========================================================
+       ESTABLECER DÍA
+    ======================================================== */
 
     selectorDia.value =
-        String(
-            dia
-        );
+        String(dia);
 
 
-    const meses =
-        typeof obtenerMeses ===
-        "function"
-            ? obtenerMeses()
-            : [
-                "Enero",
-                "Febrero",
-                "Marzo",
-                "Abril",
-                "Mayo",
-                "Junio",
-                "Julio",
-                "Agosto",
-                "Septiembre",
-                "Octubre",
-                "Noviembre",
-                "Diciembre"
-            ];
+    /* ========================================================
+       ESTABLECER MES
+    ======================================================== */
+
+    selectorMes.value =
+        String(mes);
 
 
-    if (
-        meses[mes]
-    ) {
-
-        selectorMes.value =
-            meses[mes];
-
-    }
-
-
-    actualizarFechaMostrada();
+    console.log(
+        `Fecha inicial establecida: ${dia}/${mes}`
+    );
 
 }
 
