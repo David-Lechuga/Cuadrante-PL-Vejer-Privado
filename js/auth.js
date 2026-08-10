@@ -1,9 +1,8 @@
 /* ============================================================
    AUTENTICACIÓN
-   Cuadrante Policía Local Vejer
+   CUADRANTE POLICÍA LOCAL VEJER
 ============================================================ */
 
-let usuarios = {};
 let usuarioActual = null;
 
 
@@ -30,14 +29,20 @@ async function cargarUsuarios() {
 
         }
 
-        usuarios = await respuesta.json();
+        const datos = await respuesta.json();
+
+        /*
+         * usuarios es la variable global definida en data.js
+         */
+
+        usuarios = datos || {};
 
         console.log(
             "Usuarios cargados correctamente:",
             Object.keys(usuarios).length
         );
 
-        return usuarios;
+        return true;
 
     } catch (error) {
 
@@ -48,7 +53,7 @@ async function cargarUsuarios() {
 
         usuarios = {};
 
-        throw error;
+        return false;
 
     }
 
@@ -61,64 +66,22 @@ async function cargarUsuarios() {
 
 async function inicializarAutenticacion() {
 
-    try {
+    console.log(
+        "Inicializando autenticación..."
+    );
 
+    /*
+     * Intentamos cargar los usuarios.
+     */
+
+    const usuariosOK =
         await cargarUsuarios();
 
-        /*
-         * Comprobar si existe una sesión guardada.
-         */
 
-        const sesionGuardada =
-            sessionStorage.getItem(
-                "usuarioActual"
-            );
-
-
-        if (sesionGuardada) {
-
-            try {
-
-                const usuario =
-                    JSON.parse(
-                        sesionGuardada
-                    );
-
-                if (
-                    usuario &&
-                    usuario.nombre &&
-                    usuario.tipo
-                ) {
-
-                    usuarioActual =
-                        usuario;
-
-                    mostrarAplicacion();
-
-                    actualizarInterfazUsuario();
-
-                    return;
-
-                }
-
-            } catch (error) {
-
-                console.warn(
-                    "Sesión guardada no válida."
-                );
-
-            }
-
-        }
-
-
-        mostrarLogin();
-
-    } catch (error) {
+    if (!usuariosOK) {
 
         console.error(
-            "No se pudo inicializar la autenticación:",
-            error
+            "No se pudieron cargar los usuarios."
         );
 
         mostrarLogin();
@@ -127,7 +90,75 @@ async function inicializarAutenticacion() {
             "No se ha podido cargar la información de usuarios."
         );
 
+        return;
+
     }
+
+
+    /*
+     * Comprobar si existe una sesión anterior.
+     */
+
+    const sesionGuardada =
+        sessionStorage.getItem(
+            "usuarioActual"
+        );
+
+
+    if (sesionGuardada) {
+
+        try {
+
+            const sesion =
+                JSON.parse(
+                    sesionGuardada
+                );
+
+
+            if (
+                sesion &&
+                sesion.nombre &&
+                sesion.tipo
+            ) {
+
+                usuarioActual =
+                    sesion;
+
+
+                console.log(
+                    "Sesión recuperada:",
+                    usuarioActual
+                );
+
+
+                mostrarAplicacion();
+
+                actualizarInterfazUsuario();
+
+                return;
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "La sesión guardada no es válida."
+            );
+
+            sessionStorage.removeItem(
+                "usuarioActual"
+            );
+
+        }
+
+    }
+
+
+    /*
+     * No hay sesión.
+     */
+
+    mostrarLogin();
 
 }
 
@@ -136,38 +167,32 @@ async function inicializarAutenticacion() {
    VALIDAR ACCESO
 ============================================================ */
 
-/*
- * El login solamente solicita la contraseña.
- *
- * La contraseña identifica automáticamente al usuario.
- */
-
 async function validarAcceso() {
+
+    console.log(
+        "Validando acceso..."
+    );
+
+
+    /*
+     * Buscar el campo de contraseña.
+     *
+     * Compatibilidad con diferentes versiones del HTML.
+     */
 
     const campoPassword =
         document.getElementById(
             "loginPassword"
-        );
-
-
-    const campoPasswordAntiguo =
+        ) ||
         document.getElementById(
             "password"
         );
 
 
-    const password =
-        (
-            campoPassword?.value ??
-            campoPasswordAntiguo?.value ??
-            ""
-        ).trim();
+    if (!campoPassword) {
 
-
-    if (!password) {
-
-        mostrarErrorLogin(
-            "Introduzca la contraseña."
+        console.error(
+            "No existe el campo de contraseña."
         );
 
         return;
@@ -175,21 +200,43 @@ async function validarAcceso() {
     }
 
 
+    const password =
+        campoPassword.value.trim();
+
+
     /*
-     * Si todavía no se han cargado los usuarios,
-     * intentamos cargarlos.
+     * Comprobar que se ha introducido algo.
+     */
+
+    if (!password) {
+
+        mostrarErrorLogin(
+            "Introduzca la contraseña."
+        );
+
+        campoPassword.focus();
+
+        return;
+
+    }
+
+
+    /*
+     * Si los usuarios todavía no están cargados,
+     * los cargamos ahora.
      */
 
     if (
         !usuarios ||
+        typeof usuarios !== "object" ||
         Object.keys(usuarios).length === 0
     ) {
 
-        try {
-
+        const cargados =
             await cargarUsuarios();
 
-        } catch (error) {
+
+        if (!cargados) {
 
             mostrarErrorLogin(
                 "No se ha podido cargar la lista de usuarios."
@@ -203,10 +250,10 @@ async function validarAcceso() {
 
 
     /*
-     * Buscar usuario por contraseña.
+     * Buscar al usuario mediante su contraseña.
      */
 
-    let encontrado = null;
+    let usuarioEncontrado = null;
 
 
     for (
@@ -217,17 +264,30 @@ async function validarAcceso() {
             usuarios[clave];
 
 
+        if (!usuario) {
+
+            continue;
+
+        }
+
+
         if (
-            usuario &&
-            String(usuario.password).trim() ===
-            password
+            String(
+                usuario.password || ""
+            ).trim() === password
         ) {
 
-            encontrado = {
-                id: clave,
-                nombre: usuario.nombre,
-                tipo: usuario.tipo,
-                password: usuario.password
+            usuarioEncontrado = {
+
+                id:
+                    clave,
+
+                nombre:
+                    usuario.nombre,
+
+                tipo:
+                    usuario.tipo
+
             };
 
             break;
@@ -241,19 +301,19 @@ async function validarAcceso() {
      * Contraseña incorrecta.
      */
 
-    if (!encontrado) {
+    if (!usuarioEncontrado) {
+
+        console.warn(
+            "Contraseña incorrecta."
+        );
 
         mostrarErrorLogin(
             "Contraseña incorrecta."
         );
 
-        if (campoPassword) {
+        campoPassword.value = "";
 
-            campoPassword.value = "";
-
-            campoPassword.focus();
-
-        }
+        campoPassword.focus();
 
         return;
 
@@ -261,18 +321,21 @@ async function validarAcceso() {
 
 
     /*
-     * Guardar usuario actual.
+     * Guardamos el usuario identificado.
      *
-     * No guardamos la contraseña en la sesión.
+     * NO guardamos la contraseña.
      */
 
     usuarioActual = {
 
-        id: encontrado.id,
+        id:
+            usuarioEncontrado.id,
 
-        nombre: encontrado.nombre,
+        nombre:
+            usuarioEncontrado.nombre,
 
-        tipo: encontrado.tipo
+        tipo:
+            usuarioEncontrado.tipo
 
     };
 
@@ -285,15 +348,17 @@ async function validarAcceso() {
     );
 
 
+    console.log(
+        "Usuario identificado:",
+        usuarioActual
+    );
+
+
     /*
      * Limpiar contraseña.
      */
 
-    if (campoPassword) {
-
-        campoPassword.value = "";
-
-    }
+    campoPassword.value = "";
 
 
     /*
@@ -302,21 +367,49 @@ async function validarAcceso() {
 
     mostrarAplicacion();
 
+
+    /*
+     * Actualizar elementos de usuario.
+     */
+
     actualizarInterfazUsuario();
 
 
     /*
-     * Cargar el día actual.
+     * Si existe la función irAHoy(),
+     * mostramos el día actual.
      */
 
     if (
-        typeof irAHoy ===
-        "function"
+        typeof irAHoy === "function"
     ) {
 
         irAHoy();
 
     }
+
+}
+
+
+/* ============================================================
+   COMPATIBILIDAD CON EL APP.JS ACTUAL
+============================================================ */
+
+/*
+ * El app.js que tenemos actualmente todavía llama
+ * a iniciarSesion().
+ *
+ * Mantenemos esta función para no tener que modificar
+ * el app.js en este momento.
+ */
+
+async function iniciarSesion() {
+
+    console.log(
+        "iniciarSesion() → validarAcceso()"
+    );
+
+    return await validarAcceso();
 
 }
 
@@ -411,11 +504,11 @@ function actualizarInterfazUsuario() {
 
 
     /*
-     * Buscar posibles elementos donde mostrar
-     * el usuario actual.
+     * Posibles elementos del HTML donde mostrar
+     * el nombre del usuario.
      */
 
-    const elementosNombre = [
+    const idsNombre = [
 
         "usuarioActual",
         "nombreUsuario",
@@ -424,7 +517,7 @@ function actualizarInterfazUsuario() {
     ];
 
 
-    elementosNombre.forEach(
+    idsNombre.forEach(
         id => {
 
             const elemento =
@@ -445,8 +538,7 @@ function actualizarInterfazUsuario() {
 
 
     /*
-     * Mostrar u ocultar elementos específicos
-     * del administrador.
+     * Elementos exclusivos del administrador.
      */
 
     const elementosAdmin =
@@ -480,7 +572,7 @@ function actualizarInterfazUsuario() {
 
 
     /*
-     * Marcar el tipo de usuario en el body.
+     * Guardar el tipo de usuario en el body.
      */
 
     document.body.dataset.usuarioTipo =
@@ -501,20 +593,43 @@ function obtenerUsuarioActual() {
 
 
 /* ============================================================
-   OBTENER NOMBRE DEL USUARIO
+   OBTENER NOMBRE DEL USUARIO ACTUAL
 ============================================================ */
 
 function obtenerNombreUsuarioActual() {
 
-    return usuarioActual
-        ? usuarioActual.nombre
-        : "";
+    if (!usuarioActual) {
+
+        return "";
+
+    }
+
+
+    return usuarioActual.nombre;
 
 }
 
 
 /* ============================================================
-   COMPROBAR SI ES ADMINISTRADOR
+   OBTENER TIPO DE USUARIO
+============================================================ */
+
+function obtenerTipoUsuario() {
+
+    if (!usuarioActual) {
+
+        return "";
+
+    }
+
+
+    return usuarioActual.tipo;
+
+}
+
+
+/* ============================================================
+   COMPROBAR ADMINISTRADOR
 ============================================================ */
 
 function esAdministrador() {
@@ -528,7 +643,7 @@ function esAdministrador() {
 
 
 /* ============================================================
-   COMPROBAR SI ES AGENTE
+   COMPROBAR AGENTE
 ============================================================ */
 
 function esAgente() {
@@ -542,10 +657,33 @@ function esAgente() {
 
 
 /* ============================================================
+   OBTENER AGENTE ACTUAL
+============================================================ */
+
+function obtenerAgenteActual() {
+
+    if (!usuarioActual) {
+
+        return "";
+
+    }
+
+
+    return usuarioActual.nombre;
+
+}
+
+
+/* ============================================================
    CERRAR SESIÓN
 ============================================================ */
 
 function cerrarSesion() {
+
+    console.log(
+        "Cerrando sesión..."
+    );
+
 
     usuarioActual =
         null;
@@ -556,54 +694,70 @@ function cerrarSesion() {
     );
 
 
-    mostrarLogin();
-
-
     /*
-     * Limpiar posibles mensajes de error.
+     * Mostrar login.
      */
 
-    const error =
-        document.getElementById(
-            "loginError"
-        );
-
-
-    if (error) {
-
-        error.textContent = "";
-
-    }
+    mostrarLogin();
 
 
     /*
      * Limpiar contraseña.
      */
 
-    const password =
+    const campoPassword =
         document.getElementById(
             "loginPassword"
+        ) ||
+        document.getElementById(
+            "password"
         );
 
 
-    if (password) {
+    if (campoPassword) {
 
-        password.value = "";
+        campoPassword.value = "";
 
-        password.focus();
+        campoPassword.focus();
 
     }
 
 
-    console.log(
-        "Sesión cerrada."
+    /*
+     * Limpiar posibles mensajes.
+     */
+
+    const elementosError = [
+
+        "loginError",
+        "errorLogin"
+
+    ];
+
+
+    elementosError.forEach(
+        id => {
+
+            const elemento =
+                document.getElementById(
+                    id
+                );
+
+
+            if (elemento) {
+
+                elemento.textContent = "";
+
+            }
+
+        }
     );
 
 }
 
 
 /* ============================================================
-   ERROR DE LOGIN
+   MOSTRAR ERROR DE LOGIN
 ============================================================ */
 
 function mostrarErrorLogin(
@@ -627,18 +781,18 @@ function mostrarErrorLogin(
 
 
     /*
-     * Compatibilidad con la interfaz antigua.
+     * Compatibilidad con HTML anterior.
      */
 
-    const errorAntiguo =
+    const elementoAntiguo =
         document.getElementById(
             "errorLogin"
         );
 
 
-    if (errorAntiguo) {
+    if (elementoAntiguo) {
 
-        errorAntiguo.textContent =
+        elementoAntiguo.textContent =
             mensaje;
 
     }
@@ -647,42 +801,9 @@ function mostrarErrorLogin(
 
 
 /* ============================================================
-   COMPATIBILIDAD
-============================================================ */
-
-/*
- * Algunas partes antiguas de la aplicación pueden
- * consultar estas funciones.
- */
-
-function obtenerAgenteActual() {
-
-    if (!usuarioActual) {
-
-        return "";
-
-    }
-
-
-    return usuarioActual.nombre;
-
-}
-
-
-function obtenerTipoUsuario() {
-
-    if (!usuarioActual) {
-
-        return "";
-
-    }
-
-
-    return usuarioActual.tipo;
-
-}
-
-
-/* ============================================================
    FIN AUTH.JS
 ============================================================ */
+
+console.log(
+    "auth.js cargado correctamente"
+);
