@@ -187,11 +187,13 @@ function inicializarInterfaz() {
                             "option"
                         );
 
+
                     opcion.value =
                         mes;
 
                     opcion.textContent =
                         mes;
+
 
                     selectorMes.appendChild(
                         opcion
@@ -234,11 +236,13 @@ function inicializarInterfaz() {
                         "option"
                     );
 
+
                 opcion.value =
                     dia;
 
                 opcion.textContent =
                     dia;
+
 
                 selectorDia.appendChild(
                     opcion
@@ -295,6 +299,30 @@ function inicializarInterfaz() {
 
         botonHoy.onclick =
             irAHoy;
+
+    }
+
+
+    /*
+     * --------------------------------------------------------
+     * BOTÓN DÍA SIGUIENTE
+     * --------------------------------------------------------
+     */
+
+    const botonDiaSiguiente =
+        document.getElementById(
+            "btnDiaSiguiente"
+        );
+
+
+    if (
+        botonDiaSiguiente &&
+        typeof diaSiguiente ===
+        "function"
+    ) {
+
+        botonDiaSiguiente.onclick =
+            diaSiguiente;
 
     }
 
@@ -473,13 +501,26 @@ function irAHoy() {
     }
 
 }
-
-
 /* ============================================================
-   OBTENER FECHA SELECCIONADA
+   DÍA SIGUIENTE
 ============================================================ */
 
-function obtenerFechaSeleccionada() {
+/*
+ * Avanza exactamente un día respecto al día que se está
+ * visualizando actualmente.
+ *
+ * Ejemplos:
+ *
+ * 15 agosto  → 16 agosto
+ * 31 agosto  → 1 septiembre
+ * 30 septiembre → 1 octubre
+ * 31 diciembre → 1 enero
+ *
+ * Después de actualizar los selectores ejecuta automáticamente
+ * buscarTurnos().
+ */
+
+function diaSiguiente() {
 
     const selectorDia =
         document.getElementById(
@@ -492,86 +533,312 @@ function obtenerFechaSeleccionada() {
             "mes"
         );
 
+
+    /*
+     * Si por algún motivo no existen los selectores,
+     * no continuamos.
+     */
 
     if (
         !selectorDia ||
         !selectorMes
     ) {
 
-        return null;
+        console.error(
+            "No se encontraron los selectores de día y mes."
+        );
+
+        return;
 
     }
 
 
-    return {
+    /*
+     * --------------------------------------------------------
+     * OBTENER DÍA ACTUAL
+     * --------------------------------------------------------
+     */
 
-        dia:
+    let diaActual =
+        parseInt(
             selectorDia.value,
+            10
+        );
 
-        mes:
+
+    if (
+        Number.isNaN(
+            diaActual
+        )
+    ) {
+
+        diaActual = 1;
+
+    }
+
+
+    /*
+     * --------------------------------------------------------
+     * OBTENER MES ACTUAL
+     * --------------------------------------------------------
+     */
+
+    const meses =
+        typeof obtenerMeses ===
+        "function"
+            ? obtenerMeses()
+            : [
+                "Enero",
+                "Febrero",
+                "Marzo",
+                "Abril",
+                "Mayo",
+                "Junio",
+                "Julio",
+                "Agosto",
+                "Septiembre",
+                "Octubre",
+                "Noviembre",
+                "Diciembre"
+            ];
+
+
+    let indiceMes =
+        meses.indexOf(
             selectorMes.value
+        );
 
-    };
+
+    /*
+     * Si no encontramos el mes,
+     * intentamos determinarlo por número.
+     */
+
+    if (
+        indiceMes < 0
+    ) {
+
+        const numeroMes =
+            parseInt(
+                selectorMes.value,
+                10
+            );
+
+
+        if (
+            !Number.isNaN(
+                numeroMes
+            )
+        ) {
+
+            indiceMes =
+                numeroMes - 1;
+
+        }
+
+    }
+
+
+    /*
+     * Si todavía no tenemos un mes válido,
+     * utilizamos enero.
+     */
+
+    if (
+        indiceMes < 0
+    ) {
+
+        indiceMes = 0;
+
+    }
+
+
+    /*
+     * --------------------------------------------------------
+     * DETERMINAR CUÁNTOS DÍAS TIENE EL MES
+     * --------------------------------------------------------
+     */
+
+    /*
+     * Usamos un año no bisiesto.
+     *
+     * Para el cuadrante esto es suficiente porque solamente
+     * necesitamos determinar el cambio de día/mes.
+     *
+     * Febrero tendrá 28 días.
+     */
+
+    const diasPorMes = [
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31
+    ];
+
+
+    const ultimoDia =
+        diasPorMes[indiceMes] ||
+        31;
+
+
+    /*
+     * --------------------------------------------------------
+     * AVANZAR UN DÍA
+     * -------------------------------------------------------- */
+
+    diaActual++;
+
+
+    /*
+     * Si hemos superado el último día del mes,
+     * pasamos al día 1 del siguiente mes.
+     */
+
+    if (
+        diaActual >
+        ultimoDia
+    ) {
+
+        diaActual = 1;
+
+        indiceMes++;
+
+    }
+
+
+    /*
+     * Si hemos superado diciembre,
+     * volvemos a enero.
+     */
+
+    if (
+        indiceMes >=
+        meses.length
+    ) {
+
+        indiceMes = 0;
+
+    }
+
+
+    /*
+     * --------------------------------------------------------
+     * ACTUALIZAR SELECTOR DE DÍA
+     * -------------------------------------------------------- */
+
+    selectorDia.value =
+        String(
+            diaActual
+        );
+
+
+    /*
+     * --------------------------------------------------------
+     * ACTUALIZAR SELECTOR DE MES
+     * -------------------------------------------------------- */
+
+    if (
+        meses[indiceMes]
+    ) {
+
+        selectorMes.value =
+            meses[indiceMes];
+
+    }
+
+
+    /*
+     * --------------------------------------------------------
+     * BUSCAR LOS TURNOS DEL NUEVO DÍA
+     * -------------------------------------------------------- */
+
+    if (
+        typeof buscarTurnos ===
+        "function"
+    ) {
+
+        buscarTurnos();
+
+    } else {
+
+        console.error(
+            "No existe buscarTurnos()."
+        );
+
+    }
 
 }
 
 
 /* ============================================================
-   INICIALIZAR DÍA Y MES
+   UTILIDADES DE FECHA
 ============================================================ */
 
-function inicializarFechaActual() {
+/*
+ * Devuelve el nombre del mes correspondiente a un índice
+ * de 0 a 11.
+ */
 
-    const ahora =
-        new Date();
+function obtenerNombreMes(
+    indice
+) {
 
-
-    const selectorDia =
-        document.getElementById(
-            "dia"
-        );
-
-
-    const selectorMes =
-        document.getElementById(
-            "mes"
-        );
-
-
-    if (selectorDia) {
-
-        selectorDia.value =
-            String(
-                ahora.getDate()
-            );
-
-    }
+    const meses = [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre"
+    ];
 
 
-    if (
-        selectorMes &&
-        typeof obtenerMeses ===
-        "function"
-    ) {
+    return meses[indice] ||
+        "";
 
-        const meses =
-            obtenerMeses();
+}
 
 
-        const mes =
-            meses[
-                ahora.getMonth()
-            ];
+/*
+ * Devuelve el número de días del mes.
+ */
+
+function obtenerDiasDelMes(
+    indiceMes
+) {
+
+    const dias = [
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31
+    ];
 
 
-        if (mes) {
-
-            selectorMes.value =
-                mes;
-
-        }
-
-    }
+    return dias[indiceMes] ||
+        31;
 
 }
 
@@ -597,11 +864,11 @@ function registrarServiceWorker() {
 
     window.addEventListener(
         "load",
-        function () {
+        () => {
 
             navigator.serviceWorker
                 .register(
-                    "./service-worker.js"
+                    "./sw.js"
                 )
                 .then(
                     registro => {
@@ -631,7 +898,1093 @@ function registrarServiceWorker() {
 
 
 /* ============================================================
-   FIN APP.JS
+   FUNCIONES DE INTERFAZ
+============================================================ */
+
+/*
+ * Muestra u oculta un elemento.
+ */
+
+function alternarElemento(
+    id
+) {
+
+    const elemento =
+        document.getElementById(
+            id
+        );
+
+
+    if (!elemento) {
+
+        return;
+
+    }
+
+
+    elemento.classList.toggle(
+        "hidden"
+    );
+
+}
+
+
+/*
+ * Oculta un elemento.
+ */
+
+function ocultarElemento(
+    id
+) {
+
+    const elemento =
+        document.getElementById(
+            id
+        );
+
+
+    if (elemento) {
+
+        elemento.classList.add(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+/*
+ * Muestra un elemento.
+ */
+
+function mostrarElemento(
+    id
+) {
+
+    const elemento =
+        document.getElementById(
+            id
+        );
+
+
+    if (elemento) {
+
+        elemento.classList.remove(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   CERRAR MODALES
+============================================================ */
+
+function cerrarTodosLosModales() {
+
+    const selectores = [
+
+        "#menuAjustes",
+
+        "#selectorUsuarios",
+
+        "#modalInformacion",
+
+        "#modalAgente",
+
+        "#modalTelefono",
+
+        "#modalWhatsapp"
+
+    ];
+
+
+    selectores.forEach(
+        selector => {
+
+            document
+                .querySelectorAll(
+                    selector
+                )
+                .forEach(
+                    elemento => {
+
+                        elemento.remove();
+
+                    }
+                );
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   MENSAJE DE ERROR
+============================================================ */
+
+function mostrarError(
+    mensaje
+) {
+
+    console.error(
+        mensaje
+    );
+
+
+    /*
+     * Si existe un contenedor de mensajes,
+     * lo utilizamos.
+     */
+
+    const contenedor =
+        document.getElementById(
+            "mensajeError"
+        );
+
+
+    if (
+        contenedor
+    ) {
+
+        contenedor.textContent =
+            mensaje;
+
+
+        contenedor.classList.remove(
+            "hidden"
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+     * Como último recurso utilizamos alert.
+     */
+
+    alert(
+        mensaje
+    );
+
+}
+
+
+/* ============================================================
+   MENSAJE DE INFORMACIÓN
+============================================================ */
+
+function mostrarMensaje(
+    mensaje
+) {
+
+    console.log(
+        mensaje
+    );
+
+
+    const contenedor =
+        document.getElementById(
+            "mensajeInfo"
+        );
+
+
+    if (
+        contenedor
+    ) {
+
+        contenedor.textContent =
+            mensaje;
+
+
+        contenedor.classList.remove(
+            "hidden"
+        );
+
+
+        return;
+
+    }
+
+}
+
+
+/* ============================================================
+   FIN DE LA PARTE 2
+============================================================ */
+/* ============================================================
+   FUNCIONES DE COMPATIBILIDAD
+============================================================ */
+
+/*
+ * Algunas partes de la aplicación pueden necesitar conocer
+ * si existe un usuario autenticado.
+ */
+
+function usuarioAutenticado() {
+
+    if (
+        typeof obtenerUsuarioActual ===
+        "function"
+    ) {
+
+        return obtenerUsuarioActual();
+
+    }
+
+
+    return null;
+
+}
+
+
+/* ============================================================
+   OBTENER NOMBRE DEL USUARIO ACTUAL
+============================================================ */
+
+function obtenerNombreUsuarioActualApp() {
+
+    const usuario =
+        usuarioAutenticado();
+
+
+    if (!usuario) {
+
+        return "";
+
+    }
+
+
+    return (
+        usuario.nombre ||
+        usuario.id ||
+        ""
+    );
+
+}
+
+
+/* ============================================================
+   COMPROBAR SI EL USUARIO ES ADMINISTRADOR
+============================================================ */
+
+function esAdministradorApp() {
+
+    const usuario =
+        usuarioAutenticado();
+
+
+    if (!usuario) {
+
+        return false;
+
+    }
+
+
+    return (
+        usuario.tipo ===
+        "admin"
+    );
+
+}
+
+
+/* ============================================================
+   ACTUALIZAR INFORMACIÓN DEL USUARIO
+============================================================ */
+
+function actualizarInformacionUsuario() {
+
+    const usuario =
+        usuarioAutenticado();
+
+
+    const elementos =
+        document.querySelectorAll(
+            "[data-usuario-actual]"
+        );
+
+
+    elementos.forEach(
+        elemento => {
+
+            if (usuario) {
+
+                elemento.textContent =
+                    usuario.nombre ||
+                    usuario.id ||
+                    "";
+
+            } else {
+
+                elemento.textContent =
+                    "";
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   FUNCIÓN DE APOYO PARA RECARGAR EL DÍA ACTUAL
+============================================================ */
+
+function recargarTurnos() {
+
+    if (
+        typeof buscarTurnos ===
+        "function"
+    ) {
+
+        buscarTurnos();
+
+    } else {
+
+        console.error(
+            "No existe buscarTurnos()."
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   CAMBIO DE MES
+============================================================ */
+
+function cambiarMes(
+    incremento
+) {
+
+    const selectorMes =
+        document.getElementById(
+            "mes"
+        );
+
+
+    if (!selectorMes) {
+
+        return;
+
+    }
+
+
+    const meses =
+        typeof obtenerMeses ===
+        "function"
+            ? obtenerMeses()
+            : [
+                "Enero",
+                "Febrero",
+                "Marzo",
+                "Abril",
+                "Mayo",
+                "Junio",
+                "Julio",
+                "Agosto",
+                "Septiembre",
+                "Octubre",
+                "Noviembre",
+                "Diciembre"
+            ];
+
+
+    let indice =
+        meses.indexOf(
+            selectorMes.value
+        );
+
+
+    if (
+        indice < 0
+    ) {
+
+        indice = 0;
+
+    }
+
+
+    indice +=
+        incremento;
+
+
+    if (
+        indice < 0
+    ) {
+
+        indice =
+            meses.length - 1;
+
+    }
+
+
+    if (
+        indice >=
+        meses.length
+    ) {
+
+        indice = 0;
+
+    }
+
+
+    selectorMes.value =
+        meses[indice];
+
+
+    recargarTurnos();
+
+}
+
+
+/* ============================================================
+   CAMBIO DE DÍA
+============================================================ */
+
+function cambiarDia(
+    incremento
+) {
+
+    const selectorDia =
+        document.getElementById(
+            "dia"
+        );
+
+
+    if (!selectorDia) {
+
+        return;
+
+    }
+
+
+    let dia =
+        parseInt(
+            selectorDia.value,
+            10
+        );
+
+
+    if (
+        Number.isNaN(
+            dia
+        )
+    ) {
+
+        dia = 1;
+
+    }
+
+
+    dia +=
+        incremento;
+
+
+    if (
+        dia < 1
+    ) {
+
+        dia = 31;
+
+    }
+
+
+    if (
+        dia > 31
+    ) {
+
+        dia = 1;
+
+    }
+
+
+    selectorDia.value =
+        String(
+            dia
+        );
+
+
+    recargarTurnos();
+
+}
+
+
+/* ============================================================
+   VALIDAR SELECTORES
+============================================================ */
+
+function validarSelectores() {
+
+    const dia =
+        document.getElementById(
+            "dia"
+        );
+
+
+    const mes =
+        document.getElementById(
+            "mes"
+        );
+
+
+    if (
+        !dia ||
+        !mes
+    ) {
+
+        return false;
+
+    }
+
+
+    return (
+        dia.value !== "" &&
+        mes.value !== ""
+    );
+
+}
+
+
+/* ============================================================
+   ACTUALIZAR FECHA MOSTRADA
+============================================================ */
+
+function actualizarFechaMostrada() {
+
+    const dia =
+        document.getElementById(
+            "dia"
+        );
+
+
+    const mes =
+        document.getElementById(
+            "mes"
+        );
+
+
+    const destino =
+        document.getElementById(
+            "fechaSeleccionada"
+        );
+
+
+    if (
+        !dia ||
+        !mes ||
+        !destino
+    ) {
+
+        return;
+
+    }
+
+
+    destino.textContent =
+        `${dia.value} de ${mes.value}`;
+
+}
+
+
+/* ============================================================
+   EVENTOS DE LOS SELECTORES
+============================================================ */
+
+document.addEventListener(
+    "change",
+    function (event) {
+
+        if (
+            event.target &&
+            (
+                event.target.id ===
+                "dia" ||
+                event.target.id ===
+                "mes"
+            )
+        ) {
+
+            actualizarFechaMostrada();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   ATAJOS DE TECLADO
+============================================================ */
+
+/*
+ * Los siguientes atajos permiten avanzar o retroceder
+ * rápidamente cuando el usuario está trabajando con el
+ * cuadrante.
+ *
+ * Flecha derecha → día siguiente
+ * Flecha izquierda → día anterior
+ *
+ * Solo se aplican cuando no estamos escribiendo en un input.
+ */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        const elemento =
+            event.target;
+
+
+        const tag =
+            elemento &&
+            elemento.tagName
+                ? elemento.tagName.toLowerCase()
+                : "";
+
+
+        if (
+            tag === "input" ||
+            tag === "textarea" ||
+            tag === "select"
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            event.key ===
+            "ArrowRight"
+        ) {
+
+            /*
+             * No utilizamos cambiarDia()
+             * porque Día siguiente también
+             * necesita controlar el cambio
+             * de mes.
+             */
+
+            diaSiguiente();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   PREPARAR FECHA INICIAL
+============================================================ */
+
+function prepararFechaInicial() {
+
+    const selectorDia =
+        document.getElementById(
+            "dia"
+        );
+
+
+    const selectorMes =
+        document.getElementById(
+            "mes"
+        );
+
+
+    if (
+        !selectorDia ||
+        !selectorMes
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+     * Si ya tienen valores, los respetamos.
+     */
+
+    if (
+        selectorDia.value &&
+        selectorMes.value
+    ) {
+
+        actualizarFechaMostrada();
+
+        return;
+
+    }
+
+
+    /*
+     * Si no tienen valores, cargamos el día actual.
+     */
+
+    const ahora =
+        new Date();
+
+
+    const dia =
+        ahora.getDate();
+
+
+    const mes =
+        ahora.getMonth();
+
+
+    selectorDia.value =
+        String(
+            dia
+        );
+
+
+    const meses =
+        typeof obtenerMeses ===
+        "function"
+            ? obtenerMeses()
+            : [
+                "Enero",
+                "Febrero",
+                "Marzo",
+                "Abril",
+                "Mayo",
+                "Junio",
+                "Julio",
+                "Agosto",
+                "Septiembre",
+                "Octubre",
+                "Noviembre",
+                "Diciembre"
+            ];
+
+
+    if (
+        meses[mes]
+    ) {
+
+        selectorMes.value =
+            meses[mes];
+
+    }
+
+
+    actualizarFechaMostrada();
+
+}
+
+
+/* ============================================================
+   INICIALIZACIÓN FINAL
+============================================================ */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        /*
+         * Esperamos un poco para dar tiempo a data.js
+         * a rellenar los selectores.
+         */
+
+        setTimeout(
+            function () {
+
+                prepararFechaInicial();
+
+                actualizarInformacionUsuario();
+
+            },
+            100
+        );
+
+    }
+);
+
+
+/* ============================================================
+   FIN DE LA PARTE 3
+============================================================ */
+/* ============================================================
+   PROTECCIÓN CONTRA ERRORES DE BOTONES
+============================================================ */
+
+/*
+ * Esta función comprueba si una función existe antes de
+ * ejecutarla. Sirve para evitar errores cuando algún módulo
+ * todavía no ha terminado de cargarse.
+ */
+
+function ejecutarSiExiste(
+    nombreFuncion,
+    ...argumentos
+) {
+
+    if (
+        typeof window[nombreFuncion] ===
+        "function"
+    ) {
+
+        return window[nombreFuncion](
+            ...argumentos
+        );
+
+    }
+
+
+    console.warn(
+        `No existe la función ${nombreFuncion}().`
+    );
+
+}
+
+
+/* ============================================================
+   BOTÓN DE AJUSTES
+============================================================ */
+
+/*
+ * El icono de ajustes se encuentra ahora en la cabecera.
+ *
+ * settings.js proporciona:
+ *
+ * mostrarMenuAjustes()
+ */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const botonAjustes =
+            document.getElementById(
+                "btnAjustes"
+            );
+
+
+        if (
+            botonAjustes
+        ) {
+
+            /*
+             * El onclick del HTML ya llama a
+             * mostrarMenuAjustes().
+             *
+             * No añadimos otro listener para evitar
+             * que se abra dos veces.
+             */
+
+            console.log(
+                "Botón de ajustes preparado."
+            );
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   CONTROL DE SESIÓN
+============================================================ */
+
+/*
+ * Si auth.js proporciona cerrarSesion(), lo utilizamos.
+ *
+ * No creamos una segunda función cerrarSesion() aquí porque
+ * podría provocar conflictos con auth.js.
+ */
+
+function solicitarCerrarSesion() {
+
+    if (
+        typeof cerrarSesion ===
+        "function"
+    ) {
+
+        cerrarSesion();
+
+        return;
+
+    }
+
+
+    console.warn(
+        "No existe cerrarSesion()."
+    );
+
+}
+
+
+/* ============================================================
+   CONTROL DE VISIBILIDAD
+============================================================ */
+
+/*
+ * Algunas versiones anteriores de la aplicación utilizaban
+ * estas funciones desde otros módulos.
+ */
+
+function mostrarSiExiste(
+    id
+) {
+
+    const elemento =
+        document.getElementById(
+            id
+        );
+
+
+    if (
+        elemento
+    ) {
+
+        elemento.classList.remove(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+function ocultarSiExiste(
+    id
+) {
+
+    const elemento =
+        document.getElementById(
+            id
+        );
+
+
+    if (
+        elemento
+    ) {
+
+        elemento.classList.add(
+            "hidden"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   COMPROBACIÓN DE ELEMENTOS PRINCIPALES
+============================================================ */
+
+function comprobarInterfaz() {
+
+    const elementos = {
+
+        dia:
+            document.getElementById(
+                "dia"
+            ),
+
+        mes:
+            document.getElementById(
+                "mes"
+            ),
+
+        buscar:
+            document.getElementById(
+                "btnBuscar"
+            ),
+
+        hoy:
+            document.getElementById(
+                "btnHoy"
+            ),
+
+        siguiente:
+            document.getElementById(
+                "btnDiaSiguiente"
+            ),
+
+        ajustes:
+            document.getElementById(
+                "btnAjustes"
+            )
+
+    };
+
+
+    console.log(
+        "Elementos principales de la interfaz:",
+        elementos
+    );
+
+
+    return elementos;
+
+}
+
+
+/* ============================================================
+   INICIALIZACIÓN FINAL DE LA INTERFAZ
+============================================================ */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        setTimeout(
+            function () {
+
+                comprobarInterfaz();
+
+            },
+            200
+        );
+
+    }
+);
+
+
+/* ============================================================
+   EXPONER FUNCIONES AL WINDOW
+============================================================ */
+
+/*
+ * Las funciones principales se exponen explícitamente para
+ * que los botones del HTML puedan utilizarlas mediante
+ * onclick.
+ */
+
+window.irAHoy =
+    irAHoy;
+
+
+window.diaSiguiente =
+    diaSiguiente;
+
+
+window.cargarDatosOnline =
+    cargarDatosOnline;
+
+
+window.mostrarError =
+    mostrarError;
+
+
+window.mostrarMensaje =
+    mostrarMensaje;
+
+
+/* ============================================================
+   FIN DE APP.JS
 ============================================================ */
 
 console.log(

@@ -168,7 +168,23 @@
              CABECERA
         ===================================================== -->
 
-        <div class="text-center">
+        <div class="relative text-center">
+
+            <!-- AJUSTES DISCRETO -->
+            <button
+                id="btnAjustes"
+                type="button"
+                onclick="mostrarMenuAjustes()"
+                aria-label="Abrir ajustes"
+                title="Ajustes"
+                class="absolute right-0 top-0 w-10 h-10 rounded-full
+                       text-slate-400 hover:text-[#0A2342]
+                       hover:bg-slate-100
+                       flex items-center justify-center
+                       text-xl transition"
+            >
+                ⚙️
+            </button>
 
             <img
                 src="img/icono-192.png"
@@ -331,12 +347,12 @@
 
 
             <button
-                id="btnAjustes"
+                id="btnDiaSiguiente"
                 type="button"
-                onclick="mostrarMenuAjustes()"
+                onclick="diaSiguiente()"
                 class="bg-[#0A2342] hover:bg-[#123C73] text-white font-bold py-3 rounded"
             >
-                ⚙️ Ajustes
+                Día siguiente
             </button>
 
         </div>

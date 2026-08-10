@@ -1,7 +1,7 @@
 /* ============================================================
    VISOR CUADRANTE POLICÍA LOCAL VEJER
    EDICIÓN PRIVADA
-   AJUSTES Y CAMBIO DE USUARIO
+   AJUSTES
    Versión 2.0
    Creado por David Lechuga
 ============================================================ */
@@ -126,24 +126,6 @@ function mostrarMenuAjustes() {
 
 
     /* --------------------------------------------------------
-       CAMBIAR AGENTE / USUARIO
-    -------------------------------------------------------- */
-
-    const botonCambiar =
-        crearBotonAjustes(
-            "🔄",
-            "Cambiar agente",
-            () => {
-
-                cerrarMenuAjustes();
-
-                mostrarSelectorUsuarios();
-
-            }
-        );
-
-
-    /* --------------------------------------------------------
        INFORMACIÓN
     -------------------------------------------------------- */
 
@@ -196,10 +178,6 @@ function mostrarMenuAjustes() {
 
 
     botones.appendChild(
-        botonCambiar
-    );
-
-    botones.appendChild(
         botonInformacion
     );
 
@@ -223,6 +201,7 @@ function mostrarMenuAjustes() {
     contenido.appendChild(
         botones
     );
+
 
     fondo.appendChild(
         contenido
@@ -269,8 +248,10 @@ function crearBotonAjustes(
     const boton =
         document.createElement("button");
 
+
     boton.type =
         "button";
+
 
     boton.className =
         "w-full flex items-center gap-4 " +
@@ -283,8 +264,10 @@ function crearBotonAjustes(
     const iconoElemento =
         document.createElement("span");
 
+
     iconoElemento.className =
         "text-2xl w-8 text-center";
+
 
     iconoElemento.textContent =
         icono;
@@ -293,8 +276,10 @@ function crearBotonAjustes(
     const textoElemento =
         document.createElement("span");
 
+
     textoElemento.className =
         "font-semibold text-gray-800";
+
 
     textoElemento.textContent =
         texto;
@@ -345,6 +330,20 @@ function cerrarMenuAjustes() {
    SELECTOR DE USUARIOS
 ============================================================ */
 
+/*
+ * Esta función se mantiene por compatibilidad con versiones
+ * anteriores, pero ya NO se muestra desde el menú de ajustes.
+ *
+ * El cambio de usuario se realizará mediante:
+ *
+ *      Ajustes
+ *          ↓
+ *      Cerrar sesión
+ *          ↓
+ *      Nueva contraseña
+ *
+ */
+
 function mostrarSelectorUsuarios() {
 
     cerrarTodosLosModales();
@@ -366,8 +365,10 @@ function mostrarSelectorUsuarios() {
     const fondo =
         document.createElement("div");
 
+
     fondo.id =
         "selectorUsuarios";
+
 
     fondo.className =
         "fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4";
@@ -375,6 +376,7 @@ function mostrarSelectorUsuarios() {
 
     const contenido =
         document.createElement("div");
+
 
     contenido.className =
         "bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden";
@@ -387,6 +389,7 @@ function mostrarSelectorUsuarios() {
     const cabecera =
         document.createElement("div");
 
+
     cabecera.className =
         "bg-[#0A2342] text-white px-6 py-5";
 
@@ -394,8 +397,10 @@ function mostrarSelectorUsuarios() {
     const titulo =
         document.createElement("h2");
 
+
     titulo.className =
         "text-2xl font-bold text-center";
+
 
     titulo.textContent =
         "🔄 Cambiar agente";
@@ -412,6 +417,7 @@ function mostrarSelectorUsuarios() {
 
     const lista =
         document.createElement("div");
+
 
     lista.className =
         "p-6 max-h-[60vh] overflow-y-auto space-y-2";
@@ -447,8 +453,10 @@ function mostrarSelectorUsuarios() {
                         "button"
                     );
 
+
                 boton.type =
                     "button";
+
 
                 boton.className =
                     "w-full text-left " +
@@ -463,8 +471,10 @@ function mostrarSelectorUsuarios() {
                         "div"
                     );
 
+
                 nombre.className =
                     "font-semibold text-gray-800";
+
 
                 nombre.textContent =
                     usuario.nombre ||
@@ -477,8 +487,10 @@ function mostrarSelectorUsuarios() {
                         "div"
                     );
 
+
                 descripcion.className =
                     "text-sm text-gray-500";
+
 
                 descripcion.textContent =
                     usuario.tipo === "admin"
@@ -489,6 +501,7 @@ function mostrarSelectorUsuarios() {
                 boton.appendChild(
                     nombre
                 );
+
 
                 boton.appendChild(
                     descripcion
@@ -524,6 +537,7 @@ function mostrarSelectorUsuarios() {
     const pie =
         document.createElement("div");
 
+
     pie.className =
         "px-6 pb-6";
 
@@ -549,13 +563,16 @@ function mostrarSelectorUsuarios() {
         cabecera
     );
 
+
     contenido.appendChild(
         lista
     );
 
+
     contenido.appendChild(
         pie
     );
+
 
     fondo.appendChild(
         contenido
@@ -592,39 +609,68 @@ function mostrarSelectorUsuarios() {
 function obtenerUsuariosDisponibles() {
 
     /*
-       El administrador debe poder cambiar a cualquier
-       usuario.
-
-       Los agentes también podrán seleccionar otro agente
-       si la aplicación privada lo permite.
-
-       Los datos se obtienen de la estructura cargada
-       mediante data.js.
-    */
+     * Compatibilidad con diferentes estructuras
+     * de data.js.
+     */
 
     if (
         typeof obtenerUsuarios ===
         "function"
     ) {
 
-        const usuarios =
+        const datos =
             obtenerUsuarios();
 
+
         if (
-            Array.isArray(usuarios)
+            Array.isArray(datos)
         ) {
 
-            return usuarios;
+            return datos;
+
+        }
+
+
+        /*
+         * Nuestra estructura actual de usuarios.json
+         * es un objeto:
+         *
+         * {
+         *     admin: {...},
+         *     AHU647: {...},
+         *     AIS076: {...}
+         * }
+         *
+         * Lo convertimos en array.
+         */
+
+        if (
+            datos &&
+            typeof datos === "object"
+        ) {
+
+            return Object.entries(
+                datos
+            ).map(
+                (
+                    [
+                        id,
+                        usuario
+                    ]
+                ) => ({
+
+                    id:
+                        id,
+
+                    ...usuario
+
+                })
+            );
 
         }
 
     }
 
-
-    /*
-       Compatibilidad con diferentes estructuras
-       de data.js.
-    */
 
     if (
         typeof usuariosDisponibles !==
@@ -670,8 +716,8 @@ function seleccionarUsuario(
 
 
     /*
-       Compatibilidad con auth.js.
-    */
+     * Compatibilidad con auth.js.
+     */
 
     if (
         typeof iniciarSesionComo ===
@@ -686,11 +732,6 @@ function seleccionarUsuario(
 
     }
 
-
-    /*
-       Si no existe ninguna de las funciones anteriores,
-       avisamos en lugar de fallar silenciosamente.
-    */
 
     console.warn(
         "No existe una función para cambiar de usuario."
@@ -745,8 +786,10 @@ function mostrarInformacion() {
     const fondo =
         document.createElement("div");
 
+
     fondo.id =
         "modalInformacion";
+
 
     fondo.className =
         "fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4";
@@ -754,6 +797,7 @@ function mostrarInformacion() {
 
     const contenido =
         document.createElement("div");
+
 
     contenido.className =
         "bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden";
@@ -831,6 +875,7 @@ function mostrarInformacion() {
             "div"
         );
 
+
     zonaBoton.className =
         "px-6 pb-6";
 
@@ -853,6 +898,7 @@ function mostrarInformacion() {
     contenido.appendChild(
         zonaBoton
     );
+
 
     fondo.appendChild(
         contenido
@@ -904,5 +950,9 @@ function cerrarModalInformacion() {
 
 
 /* ============================================================
-   FIN DE settings.js
+   FIN DE SETTINGS.JS
 ============================================================ */
+
+console.log(
+    "settings.js cargado correctamente."
+);
