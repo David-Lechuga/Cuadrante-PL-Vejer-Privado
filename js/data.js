@@ -1,12 +1,26 @@
 /* ============================================================
-   VISOR CUADRANTE POLICÍA LOCAL VEJER
-   GESTIÓN Y CARGA DE DATOS
-   Versión 2.0
+   DATA.JS
+   GESTIÓN DE DATOS
+   CUADRANTE POLICÍA LOCAL VEJER
 ============================================================ */
 
 let cuadrantes = {};
 let telefonos = {};
 let usuarios = {};
+
+
+/* ============================================================
+   RUTAS
+============================================================ */
+
+const RUTA_CUADRANTES =
+    "cuadrantes.json";
+
+const RUTA_TELEFONOS =
+    "telefonos.json";
+
+const RUTA_USUARIOS =
+    "usuarios.json";
 
 
 /* ============================================================
@@ -17,12 +31,14 @@ async function cargarCuadrantes() {
 
     try {
 
-        const respuesta = await fetch(
-            `${RUTAS_DATOS.cuadrantes}?t=${Date.now()}`,
-            {
-                cache: "no-store"
-            }
-        );
+        const respuesta =
+            await fetch(
+                `${RUTA_CUADRANTES}?t=${Date.now()}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
 
         if (!respuesta.ok) {
 
@@ -32,31 +48,28 @@ async function cargarCuadrantes() {
 
         }
 
-        const datos =
+
+        cuadrantes =
             await respuesta.json();
 
-        cuadrantes = datos || {};
-
-        actualizarFechaSincronizacion(
-            cuadrantes
-        );
 
         console.log(
             "Cuadrantes cargados correctamente."
         );
 
-        return true;
+
+        return cuadrantes;
 
     } catch (error) {
 
         console.error(
-            "Error cargando cuadrantes:",
+            "Error cargando cuadrantes.json:",
             error
         );
 
         cuadrantes = {};
 
-        return false;
+        return null;
 
     }
 
@@ -71,12 +84,14 @@ async function cargarTelefonos() {
 
     try {
 
-        const respuesta = await fetch(
-            `${RUTAS_DATOS.telefonos}?t=${Date.now()}`,
-            {
-                cache: "no-store"
-            }
-        );
+        const respuesta =
+            await fetch(
+                `${RUTA_TELEFONOS}?t=${Date.now()}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
 
         if (!respuesta.ok) {
 
@@ -86,27 +101,28 @@ async function cargarTelefonos() {
 
         }
 
-        const datos =
+
+        telefonos =
             await respuesta.json();
 
-        telefonos = datos || {};
 
         console.log(
             "Teléfonos cargados correctamente."
         );
 
-        return true;
+
+        return telefonos;
 
     } catch (error) {
 
         console.error(
-            "Error cargando teléfonos:",
+            "Error cargando telefonos.json:",
             error
         );
 
         telefonos = {};
 
-        return false;
+        return null;
 
     }
 
@@ -117,16 +133,18 @@ async function cargarTelefonos() {
    CARGAR USUARIOS
 ============================================================ */
 
-async function cargarUsuarios() {
+async function cargarUsuariosDatos() {
 
     try {
 
-        const respuesta = await fetch(
-            `${RUTAS_DATOS.usuarios}?t=${Date.now()}`,
-            {
-                cache: "no-store"
-            }
-        );
+        const respuesta =
+            await fetch(
+                `${RUTA_USUARIOS}?t=${Date.now()}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
 
         if (!respuesta.ok) {
 
@@ -136,52 +154,54 @@ async function cargarUsuarios() {
 
         }
 
-        const datos =
+
+        usuarios =
             await respuesta.json();
 
+
         /*
-         * Nuestro nuevo usuarios.json utiliza:
+         * Nuestro usuarios.json actual es un OBJETO:
          *
          * {
          *     "admin": {...},
          *     "AHU647": {...},
-         *     ...
+         *     "AIS076": {...}
          * }
          *
-         * Por tanto lo conservamos como objeto.
+         * Por eso NO utilizamos .find().
          */
 
         if (
-            datos &&
-            typeof datos === "object" &&
-            !Array.isArray(datos)
+            !usuarios ||
+            typeof usuarios !== "object" ||
+            Array.isArray(usuarios)
         ) {
 
-            usuarios = datos;
-
-        } else {
-
-            usuarios = {};
+            throw new Error(
+                "usuarios.json no tiene el formato esperado."
+            );
 
         }
+
 
         console.log(
             "Usuarios cargados correctamente:",
             Object.keys(usuarios).length
         );
 
-        return true;
+
+        return usuarios;
 
     } catch (error) {
 
         console.error(
-            "Error cargando usuarios:",
+            "Error cargando usuarios.json:",
             error
         );
 
         usuarios = {};
 
-        return false;
+        return null;
 
     }
 
@@ -194,53 +214,42 @@ async function cargarUsuarios() {
 
 async function cargarTodosLosDatos() {
 
+    console.log(
+        "Cargando todos los datos..."
+    );
+
+
     const resultados =
         await Promise.all([
-
             cargarCuadrantes(),
-
             cargarTelefonos(),
-
-            cargarUsuarios()
-
+            cargarUsuariosDatos()
         ]);
 
 
-    const cuadrantesOK =
-        resultados[0];
+    /*
+     * Guardar timestamp de carga.
+     */
 
-    const telefonosOK =
-        resultados[1];
-
-    const usuariosOK =
-        resultados[2];
+    window.datosCargados =
+        new Date();
 
 
     console.log(
-        "Resultado carga de datos:",
-        {
-            cuadrantes: cuadrantesOK,
-            telefonos: telefonosOK,
-            usuarios: usuariosOK
-        }
+        "Todos los datos han sido procesados."
     );
 
 
     return {
 
         cuadrantes:
-            cuadrantesOK,
+            resultados[0],
 
         telefonos:
-            telefonosOK,
+            resultados[1],
 
         usuarios:
-            usuariosOK,
-
-        correcto:
-            cuadrantesOK &&
-            telefonosOK &&
-            usuariosOK
+            resultados[2]
 
     };
 
@@ -248,55 +257,24 @@ async function cargarTodosLosDatos() {
 
 
 /* ============================================================
-   COMPATIBILIDAD CON app.js
+   OBTENER MESES
 ============================================================ */
 
-async function cargarDatosOnline() {
+function obtenerMeses() {
 
-    return await cargarTodosLosDatos();
+    if (
+        !cuadrantes ||
+        typeof cuadrantes !== "object"
+    ) {
 
-}
-
-
-/* ============================================================
-   ACTUALIZAR FECHA DE SINCRONIZACIÓN
-============================================================ */
-
-function actualizarFechaSincronizacion(
-    datos
-) {
-
-    if (!datos) {
-
-        return;
+        return [];
 
     }
 
 
-    const elemento =
-        document.getElementById(
-            "ultimaActualizacion"
-        );
-
-
-    if (!elemento) {
-
-        return;
-
-    }
-
-
-    if (datos.actualizado) {
-
-        elemento.textContent =
-            `Última sincronización: ${datos.actualizado}`;
-
-    } else {
-
-        elemento.textContent =
-            "Última sincronización: Desconocida";
-
-    }
+    return Object.keys(
+        cuadrantes
+    );
 
 }
 
@@ -306,305 +284,144 @@ function actualizarFechaSincronizacion(
 ============================================================ */
 
 function obtenerDatosMes(
-    nombreMes
+    mes
 ) {
-
-    if (!nombreMes) {
-
-        return [];
-
-    }
-
-
-    if (!cuadrantes) {
-
-        return [];
-
-    }
-
-
-    const datos =
-        cuadrantes[nombreMes];
-
-
-    if (!Array.isArray(datos)) {
-
-        return [];
-
-    }
-
-
-    return datos;
-
-}
-
-
-/* ============================================================
-   OBTENER REGISTROS DE UN DÍA
-============================================================ */
-
-function obtenerDatosDia(
-    nombreMes,
-    dia
-) {
-
-    const datosMes =
-        obtenerDatosMes(
-            nombreMes
-        );
-
-
-    const numeroDia =
-        parseInt(dia);
-
 
     if (
-        !datosMes.length ||
-        Number.isNaN(numeroDia)
+        !mes ||
+        !cuadrantes
     ) {
-
-        return [];
-
-    }
-
-
-    return datosMes.filter(
-        item =>
-            parseInt(item.dia) ===
-            numeroDia
-    );
-
-}
-
-
-/* ============================================================
-   OBTENER SERVICIO DE UN AGENTE
-============================================================ */
-
-function obtenerServicioAgente(
-    nombreAgente,
-    nombreMes,
-    dia
-) {
-
-    const datosDia =
-        obtenerDatosDia(
-            nombreMes,
-            dia
-        );
-
-
-    const nombre =
-        normalizarTexto(
-            nombreAgente
-        );
-
-
-    const registro =
-        datosDia.find(
-            item =>
-                normalizarTexto(
-                    item.agente
-                ) === nombre
-        );
-
-
-    if (!registro) {
 
         return null;
 
     }
 
 
-    return {
-
-        agente:
-            registro.agente,
-
-        turno:
-            String(
-                registro.turno || ""
-            ).trim(),
-
-        dia:
-            parseInt(
-                registro.dia
-            ),
-
-        mes:
-            nombreMes
-
-    };
+    return cuadrantes[
+        mes
+    ] || null;
 
 }
 
 
 /* ============================================================
-   OBTENER TODOS LOS AGENTES DE UN TURNO
+   OBTENER DATOS DE UN DÍA
 ============================================================ */
 
-function obtenerAgentesPorTurno(
-    nombreMes,
-    dia,
-    turno
-) {
-
-    const datosDia =
-        obtenerDatosDia(
-            nombreMes,
-            dia
-        );
-
-
-    const codigo =
-        String(
-            turno
-        ).trim();
-
-
-    return datosDia
-
-        .filter(
-            item =>
-                String(
-                    item.turno || ""
-                ).trim() ===
-                codigo
-        )
-
-        .map(
-            item =>
-                item.agente
-        );
-
-}
-
-
-/* ============================================================
-   OBTENER TODOS LOS AGENTES DE UN DÍA
-============================================================ */
-
-function obtenerTodosLosAgentesDelDia(
-    nombreMes,
+function obtenerDatosDia(
+    mes,
     dia
 ) {
 
-    return obtenerDatosDia(
-        nombreMes,
-        dia
-    );
+    const datosMes =
+        obtenerDatosMes(
+            mes
+        );
+
+
+    if (!datosMes) {
+
+        return null;
+
+    }
+
+
+    /*
+     * Compatibilidad con diferentes estructuras:
+     *
+     * datosMes[dia]
+     *
+     * o
+     *
+     * registros con propiedad dia.
+     */
+
+    if (
+        datosMes[dia] !== undefined
+    ) {
+
+        return datosMes[dia];
+
+    }
+
+
+    if (
+        Array.isArray(datosMes)
+    ) {
+
+        return datosMes.find(
+            registro =>
+                String(
+                    registro.dia
+                ) === String(dia)
+        ) || null;
+
+    }
+
+
+    return null;
 
 }
 
 
 /* ============================================================
-   OBTENER TELÉFONO DE UN AGENTE
+   OBTENER USUARIO POR ID
 ============================================================ */
 
-function obtenerTelefonoAgente(
-    nombreAgente
+function obtenerUsuario(
+    id
 ) {
 
-    if (!telefonos) {
-
-        return "";
-
-    }
-
-
-    const nombre =
-        normalizarTexto(
-            nombreAgente
-        );
-
-
-    /*
-     * Formato array
-     */
-
-    if (Array.isArray(telefonos)) {
-
-        const registro =
-            telefonos.find(
-                item =>
-                    normalizarTexto(
-                        item.agente ||
-                        item.nombre
-                    ) === nombre
-            );
-
-
-        if (!registro) {
-
-            return "";
-
-        }
-
-
-        return (
-            registro.telefono ||
-            registro.numero ||
-            ""
-        );
-
-    }
-
-
-    /*
-     * Formato objeto
-     */
-
     if (
-        typeof telefonos ===
-        "object"
+        !usuarios ||
+        typeof usuarios !== "object"
     ) {
 
-        for (
-            const clave in telefonos
-        ) {
-
-            if (
-                normalizarTexto(
-                    clave
-                ) === nombre
-            ) {
-
-                const valor =
-                    telefonos[clave];
-
-
-                if (
-                    typeof valor ===
-                    "string"
-                ) {
-
-                    return valor;
-
-                }
-
-
-                if (
-                    valor &&
-                    typeof valor ===
-                    "object"
-                ) {
-
-                    return (
-                        valor.telefono ||
-                        valor.numero ||
-                        ""
-                    );
-
-                }
-
-            }
-
-        }
+        return null;
 
     }
 
 
-    return "";
+    return usuarios[
+        id
+    ] || null;
+
+}
+
+
+/* ============================================================
+   OBTENER USUARIOS COMO ARRAY
+============================================================ */
+
+function obtenerListaUsuarios() {
+
+    if (
+        !usuarios ||
+        typeof usuarios !== "object"
+    ) {
+
+        return [];
+
+    }
+
+
+    return Object.entries(
+        usuarios
+    ).map(
+        (
+            [
+                id,
+                usuario
+            ]
+        ) => ({
+
+            id:
+                id,
+
+            ...usuario
+
+        })
+    );
 
 }
 
@@ -618,9 +435,9 @@ function obtenerUsuarioPorPassword(
 ) {
 
     if (
+        !password ||
         !usuarios ||
-        typeof usuarios !==
-        "object"
+        typeof usuarios !== "object"
     ) {
 
         return null;
@@ -628,45 +445,50 @@ function obtenerUsuarioPorPassword(
     }
 
 
-    const contraseña =
+    const passwordBuscada =
         String(
-            password || ""
+            password
         ).trim();
 
 
-    if (!contraseña) {
-
-        return null;
-
-    }
-
-
     for (
-        const clave in usuarios
+        const id in usuarios
     ) {
 
         const usuario =
-            usuarios[clave];
+            usuarios[id];
+
+
+        if (!usuario) {
+
+            continue;
+
+        }
+
+
+        const passwordUsuario =
+            String(
+                usuario.password || ""
+            ).trim();
 
 
         if (
-            usuario &&
-            String(
-                usuario.password || ""
-            ).trim() ===
-            contraseña
+            passwordUsuario ===
+            passwordBuscada
         ) {
 
             return {
 
                 id:
-                    clave,
+                    id,
 
                 nombre:
-                    usuario.nombre,
+                    usuario.nombre ||
+                    id,
 
                 tipo:
-                    usuario.tipo,
+                    usuario.tipo ||
+                    "agente",
 
                 password:
                     usuario.password
@@ -684,17 +506,16 @@ function obtenerUsuarioPorPassword(
 
 
 /* ============================================================
-   OBTENER USUARIO POR NOMBRE
+   OBTENER TELÉFONO DE UN AGENTE
 ============================================================ */
 
-function obtenerUsuarioPorNombre(
+function obtenerTelefono(
     nombre
 ) {
 
     if (
-        !usuarios ||
-        typeof usuarios !==
-        "object"
+        !telefonos ||
+        typeof telefonos !== "object"
     ) {
 
         return null;
@@ -702,43 +523,45 @@ function obtenerUsuarioPorNombre(
     }
 
 
-    const nombreNormalizado =
-        normalizarTexto(
-            nombre
-        );
+    /*
+     * Primero intentamos directamente con el nombre.
+     */
 
-
-    for (
-        const clave in usuarios
+    if (
+        telefonos[nombre]
     ) {
 
-        const usuario =
-            usuarios[clave];
+        return telefonos[nombre];
+
+    }
+
+
+    /*
+     * Si telefonos.json utiliza identificadores,
+     * intentamos recorrerlo.
+     */
+
+    for (
+        const id in telefonos
+    ) {
+
+        const registro =
+            telefonos[id];
+
+
+        if (!registro) {
+
+            continue;
+
+        }
 
 
         if (
-            usuario &&
-            normalizarTexto(
-                usuario.nombre
-            ) ===
-            nombreNormalizado
+            registro.nombre ===
+            nombre
         ) {
 
-            return {
-
-                id:
-                    clave,
-
-                nombre:
-                    usuario.nombre,
-
-                tipo:
-                    usuario.tipo,
-
-                password:
-                    usuario.password
-
-            };
+            return registro;
 
         }
 
@@ -751,64 +574,72 @@ function obtenerUsuarioPorNombre(
 
 
 /* ============================================================
-   OBTENER TODOS LOS USUARIOS
+   OBTENER CUADRANTES
 ============================================================ */
 
-function obtenerTodosLosUsuarios() {
+function obtenerCuadrantes() {
+
+    return cuadrantes;
+
+}
+
+
+/* ============================================================
+   OBTENER TELÉFONOS
+============================================================ */
+
+function obtenerTelefonos() {
+
+    return telefonos;
+
+}
+
+
+/* ============================================================
+   OBTENER USUARIOS
+============================================================ */
+
+function obtenerUsuarios() {
+
+    return usuarios;
+
+}
+
+
+/* ============================================================
+   ACTUALIZACIÓN
+============================================================ */
+
+function obtenerFechaActualizacion() {
 
     if (
-        !usuarios ||
-        typeof usuarios !==
-        "object"
+        cuadrantes &&
+        cuadrantes.actualizado
     ) {
 
-        return [];
+        return cuadrantes.actualizado;
 
     }
 
 
-    return Object.keys(
-        usuarios
-    ).map(
-        clave => ({
+    if (
+        window.datosCargados
+    ) {
 
-            id:
-                clave,
+        return window.datosCargados;
 
-            nombre:
-                usuarios[clave].nombre,
+    }
 
-            tipo:
-                usuarios[clave].tipo
 
-        })
-    );
+    return null;
 
 }
 
 
 /* ============================================================
-   COMPROBAR SI EXISTEN LOS DATOS
+   FIN DATA.JS
 ============================================================ */
 
-function datosDisponibles() {
-
-    return (
-
-        cuadrantes &&
-
-        typeof cuadrantes ===
-            "object" &&
-
-        Object.keys(
-            cuadrantes
-        ).length > 0
-
-    );
-
-}
-
-
-/* ============================================================
-   FIN data.js
-============================================================ */
+console.log(
+    "data.js cargado correctamente."
+);
