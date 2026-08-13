@@ -163,7 +163,7 @@ const HORAS_EXTRAS = {
    MESES
 ============================================================ */
 
-var MESES = [
+var MESES_CONFIG = [
 
     "",
 
