@@ -1110,6 +1110,21 @@ function obtenerTelefono(
     }
 
 
+    const datosTelefonos =
+        telefonos.telefonos;
+
+
+    if (
+        !datosTelefonos ||
+        typeof datosTelefonos !==
+        "object"
+    ) {
+
+        return null;
+
+    }
+
+
     const clave =
         String(
             nombre
@@ -1122,12 +1137,12 @@ function obtenerTelefono(
      */
 
     if (
-        telefonos[
+        datosTelefonos[
             clave
         ]
     ) {
 
-        return telefonos[
+        return datosTelefonos[
             clave
         ];
 
@@ -1141,7 +1156,7 @@ function obtenerTelefono(
 
     const claveEncontrada =
         Object.keys(
-            telefonos
+            datosTelefonos
         )
         .find(
             key =>
@@ -1157,7 +1172,7 @@ function obtenerTelefono(
         claveEncontrada
     ) {
 
-        return telefonos[
+        return datosTelefonos[
             claveEncontrada
         ];
 
