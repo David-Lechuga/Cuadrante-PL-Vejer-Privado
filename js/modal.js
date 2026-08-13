@@ -435,7 +435,7 @@ function abrirWhatsAppAgente(
 ) {
 
     const telefono =
-        obtenerTelefonoAgente(
+        obtenerTelefono(
             nombre
         );
 
@@ -647,7 +647,7 @@ function llamarAgente(
 ) {
 
     const telefono =
-        obtenerTelefonoAgente(
+        obtenerTelefono(
             nombre
         );
 
