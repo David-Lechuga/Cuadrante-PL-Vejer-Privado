@@ -24,13 +24,13 @@ let datosCargados = false;
 ============================================================ */
 
 const RUTA_CUADRANTES =
-    "data/cuadrantes.json";
+    "cuadrantes.json";
 
 const RUTA_USUARIOS =
     "usuarios.json";
 
 const RUTA_TELEFONOS =
-    "data/telefonos.json";
+    "telefonos.json";
 
 
 /* ============================================================
