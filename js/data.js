@@ -987,9 +987,9 @@ function obtenerUsuarioPorPassword(
 
 
     if (
-        !Array.isArray(
-            usuarios
-        )
+        !usuarios ||
+        typeof usuarios !==
+        "object"
     ) {
 
         return null;
@@ -997,36 +997,57 @@ function obtenerUsuarioPorPassword(
     }
 
 
-    return (
-        usuarios.find(
-            usuario => {
-
-                if (
-                    !usuario ||
-                    typeof usuario !==
-                    "object"
-                ) {
-
-                    return false;
-
-                }
+    const claves =
+        Object.keys(
+            usuarios
+        );
 
 
-                return (
-                    String(
-                        usuario.password ??
-                        ""
-                    ) ===
-                    clave
-                );
+    for (
+        const usuarioKey of claves
+    ) {
 
-            }
-        ) ||
-        null
-    );
+        const usuario =
+            usuarios[
+                usuarioKey
+            ];
+
+
+        if (
+            !usuario ||
+            typeof usuario !==
+            "object"
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            String(
+                usuario.password ??
+                ""
+            ) ===
+            clave
+        ) {
+
+            return {
+                ...usuario,
+
+                id:
+                    usuario.id ||
+                    usuarioKey
+            };
+
+        }
+
+    }
+
+
+    return null;
 
 }
-
 
 /* ============================================================
    OBTENER TODOS LOS USUARIOS
