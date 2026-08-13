@@ -718,26 +718,25 @@ function obtenerNombreMes(
 ) {
 
     const meses = [
-        "Enero",
-        "Febrero",
-        "Marzo",
-        "Abril",
-        "Mayo",
-        "Junio",
-        "Julio",
-        "Agosto",
-        "Septiembre",
-        "Octubre",
-        "Noviembre",
-        "Diciembre"
+        "ENERO",
+        "FEBRERO",
+        "MARZO",
+        "ABRIL",
+        "MAYO",
+        "JUNIO",
+        "JULIO",
+        "AGOSTO",
+        "SEPTIEMBRE",
+        "OCTUBRE",
+        "NOVIEMBRE",
+        "DICIEMBRE"
     ];
 
 
-    return meses[indice] ||
-        "";
-
+    return meses[
+        indice - 1
+    ] || "";
 }
-
 
 /*
  * Devuelve el número de días del mes.
