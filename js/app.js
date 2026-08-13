@@ -48,6 +48,28 @@ document.addEventListener(
                     "Datos cargados correctamente."
                 );
 
+
+                /*
+                 * ------------------------------------------------
+                 * ESTABLECER FECHA ACTUAL
+                 * ------------------------------------------------
+                 *
+                 * Los selectores de día y mes ya han sido
+                 * rellenados por data.js, por lo que ahora
+                 * podemos establecer correctamente la fecha
+                 * actual.
+                 */
+
+                if (
+                    typeof irAHoy ===
+                    "function"
+                ) {
+
+                    irAHoy();
+
+                }
+
+
             } else {
 
                 console.error(
@@ -1602,13 +1624,10 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        prepararFechaInicial();
-
         actualizarInformacionUsuario();
 
     }
 );
-
 
 /* ============================================================
    FIN DE LA PARTE 3
