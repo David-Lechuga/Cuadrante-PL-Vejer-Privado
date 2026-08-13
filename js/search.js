@@ -19,11 +19,9 @@ function buscarTurnos() {
 
     if (!usuarioAutenticado()) {
 
-        mostrarPantallaLogin();
+    return;
 
-        return;
-
-    }
+}
 
 
     const selectorDia =
