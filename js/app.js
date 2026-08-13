@@ -1602,21 +1602,9 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        /*
-         * Esperamos un poco para dar tiempo a data.js
-         * a rellenar los selectores.
-         */
+        prepararFechaInicial();
 
-        setTimeout(
-            function () {
-
-                prepararFechaInicial();
-
-                actualizarInformacionUsuario();
-
-            },
-            100
-        );
+        actualizarInformacionUsuario();
 
     }
 );
