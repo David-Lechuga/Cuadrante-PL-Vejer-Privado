@@ -101,7 +101,7 @@ async function inicializarAutenticacion() {
      */
 
     const sesionGuardada =
-        sessionStorage.getItem(
+        localStorage.getItem(
             "usuarioActual"
         );
 
@@ -159,7 +159,7 @@ async function inicializarAutenticacion() {
         }
 
 
-        sessionStorage.removeItem(
+        localStorage.removeItem(
             "usuarioActual"
         );
 
@@ -316,7 +316,7 @@ async function iniciarSesion() {
     };
 
 
-    sessionStorage.setItem(
+    localStorage.setItem(
         "usuarioActual",
         JSON.stringify(
             usuarioActual
@@ -498,7 +498,7 @@ async function validarAcceso() {
     };
 
 
-    sessionStorage.setItem(
+    localStorage.setItem(
         "usuarioActual",
         JSON.stringify(
             usuarioActual
@@ -812,7 +812,7 @@ function cerrarSesion() {
         null;
 
 
-    sessionStorage.removeItem(
+    localStorage.removeItem(
         "usuarioActual"
     );
 
