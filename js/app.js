@@ -59,6 +59,8 @@ document.addEventListener(
                  * podemos establecer correctamente la fecha
                  * actual.
                  */
+                
+                establecerFechaHoy();
 
                 if (
                     typeof irAHoy ===
