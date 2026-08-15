@@ -728,52 +728,114 @@ function renderizarTurnosAgente(
     */
 
     let cajaPrincipal =
-        "";
+    "";
 
 
-    if (
-        turnoAgente === TURNOS.MANANA
-    ) {
+/*
+ * ------------------------------------------------------------
+ * GRUPO MAÑANA
+ * ------------------------------------------------------------
+ *
+ * M
+ * CM
+ * HM
+ * Hm
+ * Ht
+ *
+ * Todos pertenecen al mismo grupo operativo de mañana.
+ */
 
-        cajaPrincipal =
-            crearCaja(
-                "🌞 Mañana",
-                manana,
-                TURNOS.MANANA,
-                fecha
-            );
-
-    }
-
-
-    if (
-        turnoAgente === TURNOS.NOCHE
-    ) {
-
-        cajaPrincipal =
-            crearCaja(
-                "🌙 Noche",
-                noche,
-                TURNOS.NOCHE,
-                fecha
-            );
-
-    }
+const esGrupoManana =
+    turnoAgente === TURNOS.MANANA ||
+    turnoAgente === "CM" ||
+    turnoAgente === HORAS_EXTRAS.MANANA_12 ||
+    turnoAgente === HORAS_EXTRAS.MANANA_8 ||
+    turnoAgente === HORAS_EXTRAS.TARDE_8;
 
 
-    if (
-        turnoAgente === TURNOS.PLAYA
-    ) {
+/*
+ * ------------------------------------------------------------
+ * GRUPO NOCHE
+ * ------------------------------------------------------------
+ *
+ * N
+ * CN
+ * HN
+ * Hn
+ *
+ * Todos pertenecen al mismo grupo operativo de noche.
+ */
 
-        cajaPrincipal =
-            crearCaja(
-                "🏖️ Playa",
-                datos.playa,
-                TURNOS.PLAYA,
-                fecha
-            );
+const esGrupoNoche =
+    turnoAgente === TURNOS.NOCHE ||
+    turnoAgente === "CN" ||
+    turnoAgente === HORAS_EXTRAS.NOCHE_12 ||
+    turnoAgente === HORAS_EXTRAS.NOCHE_8;
 
-    }
+
+/*
+ * ------------------------------------------------------------
+ * GRUPO PLAYA
+ * ------------------------------------------------------------
+ *
+ * PL
+ * HPL
+ */
+
+const esGrupoPlaya =
+    turnoAgente === TURNOS.PLAYA ||
+    turnoAgente === HORAS_EXTRAS.PLAYA;
+
+
+/*
+ * ------------------------------------------------------------
+ * CAJA PRINCIPAL
+ * ------------------------------------------------------------
+ */
+
+if (
+    esGrupoManana
+) {
+
+    cajaPrincipal =
+        crearCaja(
+            "🌞 Mañana",
+            manana,
+            TURNOS.MANANA,
+            fecha
+        );
+
+}
+
+
+if (
+    esGrupoNoche
+) {
+
+    cajaPrincipal =
+        crearCaja(
+            "🌙 Noche",
+            noche,
+            TURNOS.NOCHE,
+            fecha
+        );
+
+}
+
+
+if (
+    esGrupoPlaya
+) {
+
+    cajaPrincipal =
+        crearCaja(
+            "🏖️ Playa",
+            datos.playa,
+            TURNOS.PLAYA,
+            fecha
+        );
+
+}
 
 
     resultado.innerHTML = `
@@ -983,7 +1045,7 @@ function obtenerNombreEstado(
 
         case ESTADOS_NO_OPERATIVOS.HORAS_PARTICULARES:
 
-            return "HORAS PARTICULARES";
+            return "HORAS DE PREVENCIÓN";
 
 
         case ESTADOS_NO_OPERATIVOS.HUELGA_JORNADA:
