@@ -19,9 +19,9 @@ function buscarTurnos() {
 
     if (!usuarioAutenticado()) {
 
-    return;
+        return;
 
-}
+    }
 
 
     const selectorDia =
@@ -261,14 +261,19 @@ function buscarTurnosAgente(
 
 
     /*
-       Turno operativo:
-       buscamos compañeros del mismo servicio.
+       Turnos operativos normales.
+
+       M  + CM = grupo Mañana
+       N  + CN = grupo Noche
+       PL     = grupo Playa
     */
 
     if (
         esTurnoOperativo(
             turnoAgente
-        )
+        ) ||
+        turnoAgente === "CM" ||
+        turnoAgente === "CN"
     ) {
 
         buscarTurnoOperativoAgente(
@@ -342,14 +347,14 @@ function buscarTurnoOperativoAgente(
         ).trim();
 
 
-    const compañeros =
-        registrosDia.filter(
-            item =>
-                String(
-                    item.turno || ""
-                ).trim() === turno
-        );
+    /*
+       Creamos primero la clasificación completa
+       de los turnos del día.
 
+       Mañana = M + CM
+       Noche  = N + CN
+       Playa  = PL
+    */
 
     const datos =
         crearDatosTurnos(
@@ -358,56 +363,111 @@ function buscarTurnoOperativoAgente(
 
 
     /*
-       Sustituimos el listado general del turno
-       por únicamente los compañeros del mismo turno.
+       Determinamos a qué grupo pertenece el agente.
+    */
+
+    const esGrupoManana =
+        turno === TURNOS.MANANA ||
+        turno === "CM";
+
+
+    const esGrupoNoche =
+        turno === TURNOS.NOCHE ||
+        turno === "CN";
+
+
+    const esGrupoPlaya =
+        turno === TURNOS.PLAYA;
+
+
+    /*
+       Para los turnos normales y CM/CN:
+
+       - El cuadro principal contiene todos los
+         compañeros del grupo correspondiente.
+       - Las horas extras correspondientes al grupo
+         también se muestran.
     */
 
     const datosPrivados = {
 
         manana:
-            turno === TURNOS.MANANA
-                ? compañeros
+            esGrupoManana
+                ? datos.manana
                 : [],
+
 
         noche:
-            turno === TURNOS.NOCHE
-                ? compañeros
+            esGrupoNoche
+                ? datos.noche
                 : [],
 
+
         playa:
-            turno === TURNOS.PLAYA
-                ? compañeros
+            esGrupoPlaya
+                ? datos.playa
                 : [],
+
 
         vacaciones: [],
 
+
+        /*
+         * MAÑANA
+         *
+         * M / CM / HM / Hm / Ht
+         * comparten:
+         *
+         * HM + Hm + Ht
+         */
+
         extraHM:
-            turno === TURNOS.MANANA
+            esGrupoManana
                 ? datos.extraHM
                 : [],
 
-        extraHN:
-            turno === TURNOS.NOCHE
-                ? datos.extraHN
-                : [],
 
         extraHm:
-            turno === TURNOS.MANANA
+            esGrupoManana
                 ? datos.extraHm
                 : [],
 
+
         extraHt:
-            turno === TURNOS.MANANA
+            esGrupoManana
                 ? datos.extraHt
                 : [],
 
+
+        /*
+         * NOCHE
+         *
+         * N / CN / HN / Hn
+         * comparten:
+         *
+         * HN + Hn
+         */
+
+        extraHN:
+            esGrupoNoche
+                ? datos.extraHN
+                : [],
+
+
         extraHn:
-            turno === TURNOS.NOCHE
+            esGrupoNoche
                 ? datos.extraHn
                 : [],
 
+
+        /*
+         * PLAYA
+         *
+         * PL / HPL
+         */
+
         extraHPL:
-            turno === TURNOS.PLAYA
+            esGrupoPlaya
                 ? datos.extraHPL
                 : []
 
@@ -443,25 +503,10 @@ function buscarHoraExtraAgente(
         ).trim();
 
 
-    const turnoPrincipal =
-        obtenerTurnoAsociadoHoraExtra(
-            turnoExtra
-        );
-
-
     /*
-       Los compañeros se buscan dentro de la misma
-       categoría de hora extra.
+       Creamos la clasificación completa
+       de los turnos del día.
     */
-
-    const compañeros =
-        registrosDia.filter(
-            item =>
-                String(
-                    item.turno || ""
-                ).trim() === turnoExtra
-        );
-
 
     const datos =
         crearDatosTurnos(
@@ -469,53 +514,135 @@ function buscarHoraExtraAgente(
         );
 
 
+    /*
+       Determinamos el grupo al que pertenece
+       la hora extra.
+    */
+
+    const esGrupoManana =
+        turnoExtra === HORAS_EXTRAS.MANANA_12 ||
+        turnoExtra === HORAS_EXTRAS.MANANA_8 ||
+        turnoExtra === HORAS_EXTRAS.TARDE_8;
+
+
+    const esGrupoNoche =
+        turnoExtra === HORAS_EXTRAS.NOCHE_12 ||
+        turnoExtra === HORAS_EXTRAS.NOCHE_8;
+
+
+    const esGrupoPlaya =
+        turnoExtra === HORAS_EXTRAS.PLAYA;
+
+
+    /*
+       Cuando el agente está en una hora extra,
+       también debe ver el turno ordinario asociado.
+
+       Por ejemplo:
+
+       HM → M + CM + HM + Hm + Ht
+
+       Hm → M + CM + HM + Hm + Ht
+
+       Ht → M + CM + HM + Hm + Ht
+
+       HN → N + CN + HN + Hn
+
+       Hn → N + CN + HN + Hn
+
+       HPL → PL + HPL
+    */
+
     const datosPrivados = {
 
+        /*
+         * GRUPO MAÑANA
+         */
+
         manana:
-            turnoPrincipal === TURNOS.MANANA
-                ? compañeros
+            esGrupoManana
+                ? datos.manana
                 : [],
+
+
+        /*
+         * GRUPO NOCHE
+         */
 
         noche:
-            turnoPrincipal === TURNOS.NOCHE
-                ? compañeros
+            esGrupoNoche
+                ? datos.noche
                 : [],
 
+
+        /*
+         * GRUPO PLAYA
+         */
+
         playa:
-            turnoPrincipal === TURNOS.PLAYA
-                ? compañeros
+            esGrupoPlaya
+                ? datos.playa
                 : [],
+
 
         vacaciones: [],
 
+
+        /*
+         * HORAS EXTRAS MAÑANA
+         *
+         * Para cualquiera de:
+         *
+         * HM / Hm / Ht
+         *
+         * mostramos las tres categorías.
+         */
+
         extraHM:
-            turnoExtra === HORAS_EXTRAS.MANANA_12
-                ? compañeros
+            esGrupoManana
+                ? datos.extraHM
                 : [],
 
-        extraHN:
-            turnoExtra === HORAS_EXTRAS.NOCHE_12
-                ? compañeros
-                : [],
 
         extraHm:
-            turnoExtra === HORAS_EXTRAS.MANANA_8
-                ? compañeros
+            esGrupoManana
+                ? datos.extraHm
                 : [],
+
 
         extraHt:
-            turnoExtra === HORAS_EXTRAS.TARDE_8
-                ? compañeros
+            esGrupoManana
+                ? datos.extraHt
                 : [],
+
+
+        /*
+         * HORAS EXTRAS NOCHE
+         *
+         * HN / Hn
+         *
+         * mostramos las dos categorías.
+         */
+
+        extraHN:
+            esGrupoNoche
+                ? datos.extraHN
+                : [],
+
 
         extraHn:
-            turnoExtra === HORAS_EXTRAS.NOCHE_8
-                ? compañeros
+            esGrupoNoche
+                ? datos.extraHn
                 : [],
 
+
+        /*
+         * HORAS EXTRAS PLAYA
+         */
+
         extraHPL:
-            turnoExtra === HORAS_EXTRAS.PLAYA
-                ? compañeros
+            esGrupoPlaya
+                ? datos.extraHPL
                 : []
 
     };
@@ -576,6 +703,13 @@ function crearDatosTurnos(
 
             switch (turno) {
 
+
+                /*
+                 * MAÑANA
+                 *
+                 * M + CM
+                 */
+
                 case TURNOS.MANANA:
 
                     datos.manana.push(
@@ -584,6 +718,21 @@ function crearDatosTurnos(
 
                     break;
 
+
+                case "CM":
+
+                    datos.manana.push(
+                        item
+                    );
+
+                    break;
+
+
+                /*
+                 * NOCHE
+                 *
+                 * N + CN
+                 */
 
                 case TURNOS.NOCHE:
 
@@ -594,6 +743,19 @@ function crearDatosTurnos(
                     break;
 
 
+                case "CN":
+
+                    datos.noche.push(
+                        item
+                    );
+
+                    break;
+
+
+                /*
+                 * PLAYA
+                 */
+
                 case TURNOS.PLAYA:
 
                     datos.playa.push(
@@ -602,6 +764,10 @@ function crearDatosTurnos(
 
                     break;
 
+
+                /*
+                 * HORAS EXTRAS
+                 */
 
                 case HORAS_EXTRAS.MANANA_12:
 
@@ -656,6 +822,10 @@ function crearDatosTurnos(
 
                     break;
 
+
+                /*
+                 * VACACIONES
+                 */
 
                 case ESTADOS_NO_OPERATIVOS.VACACIONES:
 
