@@ -162,6 +162,8 @@ document.addEventListener(
          */
          establecerFechaHoy();
 
+         buscarTurnos();
+
         console.log(
             "Aplicación iniciada correctamente."
         );
