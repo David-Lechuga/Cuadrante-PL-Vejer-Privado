@@ -155,6 +155,12 @@ document.addEventListener(
 
         registrarServiceWorker();
 
+        /*
+         * Establecer nuevamente la fecha actual
+         * después de completar la inicialización
+         * de todos los elementos de la interfaz.
+         */
+         establecerFechaHoy();
 
         console.log(
             "Aplicación iniciada correctamente."
